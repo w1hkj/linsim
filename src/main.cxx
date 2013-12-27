@@ -9,11 +9,9 @@
 //  This program is distributed under the GPL license
 //======================================================================
 
-#include "linsim_ui.h"
+#include "main.h"
 #include <string>
 #include "sound.h"
-#include "sim_vals.h"
-#include "sim.h"
 
 #include <fstream>
 #include <ostream>
@@ -64,6 +62,10 @@
 #include <FL/Fl_Image.H>
 #include <FL/Fl_File_Chooser.H>
 
+string BaseDir = "";
+string HomeDir = "";
+
+
 #define KNAME "linsim"
 #if !defined(__WIN32__) && !defined(__APPLE__)
 
@@ -89,7 +91,13 @@ void make_pixmap(Pixmap *xpm, const char **data)
 
 #endif
 
-int parse_args(int argc, char **argv, int& idx);
+csvdb simulations;
+SIM sim_test;
+_vals sim_vals;
+std::string fname_in;
+std::string fname_out;
+
+Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
 
 char title[50];
 char progdir[80];
@@ -147,13 +155,36 @@ void visit_URL(void* arg)
 #endif
 }
 
+void clean_exit()
+{
+	simulations.save();
+	if (simulator_selector) simulator_selector->hide();
+	linsim_window->hide();
+}
+
 void exit_main(Fl_Widget *w)
 {
 	if (Fl::event_key() == FL_Escape)
 		return;
+	clean_exit();
 }
 
-int main(int argc, char **argv) 
+// Show an error dialog and print to cerr if available.
+// On win32 Fl::fatal displays its own error window.
+static void fatal_error(string sz_error)
+{
+	string s = "Fatal error!\n";
+	s.append(sz_error).append("\n").append(strerror(errno));
+
+// Win32 will display a MessageBox error message
+#if !defined(__WOE32__)
+	fl_message_font(FL_HELVETICA, FL_NORMAL_SIZE);
+	fl_alert("%s", s.c_str());
+#endif
+	Fl::fatal(s.c_str());
+}
+
+int main(int argc, char **argv)
 {
 	int arg_idx;
 
@@ -169,6 +200,22 @@ int main(int argc, char **argv)
 	linsim_window->label(title);
 	linsim_window->callback(exit_main);
 
+#ifdef __WOE32__
+	char dirbuf[FL_PATH_MAX + 1];
+	fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
+	HomeDir.assign(dirbuf).append("linsim.files/");
+#else
+	char dirbuf[FL_PATH_MAX + 1];
+	fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$HOME/");
+	HomeDir.assign(dirbuf).append(".linsim/");
+#endif
+
+	if (mkdir(HomeDir.c_str(), 0777) == -1 && errno != EEXIST) {
+		string s = "Could not create linsim directory ";
+		s.append(HomeDir);
+		fatal_error(s);
+	}
+
 #ifdef WIN32
 	linsim_window->icon((char*)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_ICON)));
 	linsim_window->show(argc, argv);
@@ -180,6 +227,8 @@ int main(int argc, char **argv)
 	linsim_window->show(argc, argv);
 #endif
 
+	simulations.load();
+
 	return Fl::run();
 }
 
@@ -190,10 +239,177 @@ int parse_args(int argc, char **argv, int& idx)
   --help this help text\n\
   --version\n");
 		exit(0);
-	} 
+	}
 	if (strcasecmp("--version", argv[idx]) == 0) {
 		printf("Version: "VERSION"\n");
 		exit (0);
 	}
 	return 0;
 }
+
+void run_simulation()
+{
+	double buffer[MAX_BUF_SIZE];
+
+	sim_test.AWGN(sim_vals.AWGN_on);
+	sim_test.SetsnrValue(sim_vals.snrdb);
+	sim_test.init(8000.0, sim_vals.p0, sim_vals.p0, sim_vals.p1, sim_vals.d);
+
+	if (fname_in.empty() || fname_out.empty()) return;
+		sim_test.sound_in.open(fname_in, SoundFile::READ);
+		size_t fsize = 0, r = 0, partial = 0;
+		sim_test.signal_rms = 0.0;
+		while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+			sim_test.measure_rms(buffer, MAX_BUF_SIZE);
+			fsize += r;
+		}
+		sim_test.sound_in.rewind();
+		sim_test.sound_out.open(fname_out, SoundFile::WRITE);
+		progress->value(0);
+		progress->minimum(0);
+		progress->maximum(fsize * 1.0);
+		while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+			partial += r;
+			if ((partial / r) % 4 == 0) {
+				progress->value(partial*1.0);
+				progress->redraw();
+				Fl::flush();
+		}
+		sim_test.Process(buffer, r);
+		sim_test.sound_out.write(buffer, r);
+	}
+	progress->value(fsize * 1.0);
+	sim_test.sound_in.close();
+	sim_test.sound_out.close();
+	progress->value(0);
+	progress->redraw();
+}
+
+void populate_simulation_selector()
+{
+	tbl_simulations->clear();
+	simulations.sort();
+	for (int n = 0; n < simulations.numrecs(); n++)
+		tbl_simulations->add(simulations.dbrecs[n].title.c_str());
+	tbl_simulations->redraw();
+}
+
+void cancel_selection()
+{
+	btn_delete_selection->deactivate();
+	btn_update_selection->deactivate();
+	simulator_selector->hide();
+}
+
+void delete_selection(int n)
+{
+	btn_delete_selection->deactivate();
+	btn_update_selection->deactivate();
+	if (!n) return;
+	simulations.erase(n-1);
+	populate_simulation_selector();
+}
+
+void update_selection(int n)
+{
+	btn_delete_selection->deactivate();
+	btn_update_selection->deactivate();
+
+	if (!n) return;
+	n--;
+	simulations.dbrecs[n].title = txt_simulation->value();
+
+
+	simulations.dbrecs[n].awgn = inp_AWGN_on->value() ? "1" : "0";
+	simulations.dbrecs[n].sn = inp_AWGN_rms->value();
+
+	simulations.dbrecs[n].p0 = p0_on->value() ? "1" : "0";
+	simulations.dbrecs[n].spread_0 = inp_spread0->value();
+	simulations.dbrecs[n].offset_0 = inp_offset0->value();
+
+	simulations.dbrecs[n].p1 = p1_on->value() ? "1" : "0";
+	simulations.dbrecs[n].delay_1 = inp_delay1->value();
+	simulations.dbrecs[n].spread_1 = inp_spread1->value();
+	simulations.dbrecs[n].offset_1 = inp_offset1->value();
+
+	simulations.dbrecs[n].p2 = p2_on->value() ? "1" : "0";
+	simulations.dbrecs[n].delay_2 = inp_delay2->value();
+	simulations.dbrecs[n].spread_2 = inp_spread2->value();
+	simulations.dbrecs[n].offset_2 = inp_offset2->value();
+
+	populate_simulation_selector();
+}
+
+void add_simulation()
+{
+	if (!simulator_selector) simulator_selector = make_selector_dialog();
+
+	csvRecord rec;
+
+	rec.title    = txt_simulation->value();
+	rec.awgn     = inp_AWGN_on->value() ? "1" : "0";
+	rec.sn       = inp_AWGN_rms->value();
+	rec.p0       = p0_on->value() ? "1" : "0";
+	rec.spread_0 = inp_spread0->value();
+	rec.offset_0 = inp_offset0->value();
+	rec.p1       = p1_on->value() ? "1" : "0";
+	rec.delay_1  = inp_delay1->value();
+	rec.spread_1 = inp_spread1->value();
+	rec.offset_1 = inp_offset1->value();
+	rec.p2       = p2_on->value() ? "1" : "0";
+	rec.delay_2  = inp_delay2->value();
+	rec.spread_2 = inp_spread2->value();
+	rec.offset_2 = inp_offset2->value();
+
+	simulations.add(rec);
+	populate_simulation_selector();
+}
+
+void tbl_simulations_selected()
+{
+	btn_delete_selection->deactivate();
+	btn_update_selection->deactivate();
+}
+
+void select_entry(int n)
+{
+//	simulator_selector->hide();
+	if (!n) return;
+	n--;
+
+//	simulations.printrec(n);
+
+	txt_simulation->value(simulations.dbrecs[n].title.c_str());
+
+	bool b = simulations.dbrecs[n].p0 == "1";
+	p0_on->value(b);
+	inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
+	inp_offset0->value(simulations.dbrecs[n].offset_0.c_str());
+
+	b = simulations.dbrecs[n].p1 == "1";
+	p1_on->value(b);
+	inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
+	inp_spread1->value(simulations.dbrecs[n].spread_1.c_str());
+	inp_offset1->value(simulations.dbrecs[n].offset_1.c_str());
+
+	b = simulations.dbrecs[n].p2 == "1";
+	p2_on->value(b);
+	inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
+	inp_spread2->value(simulations.dbrecs[n].spread_2.c_str());
+	inp_offset2->value(simulations.dbrecs[n].offset_2.c_str());
+
+	b = simulations.dbrecs[n].awgn == "1";
+	inp_AWGN_on->value(b);
+	inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
+
+	btn_delete_selection->activate();
+	btn_update_selection->activate();
+}
+
+void select_simulation()
+{
+	if (!simulator_selector) simulator_selector = make_selector_dialog();
+	populate_simulation_selector();
+	simulator_selector->show();
+}
+

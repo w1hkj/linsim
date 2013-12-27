@@ -106,12 +106,15 @@ linsim_SOURCES += \
 	sim.cxx \
 	sound.cxx \
 	gauss_fir.cxx \
+	csv.cxx \
 	include/complex.h \
+	include/csv.h \
 	include/delay.h \
 	include/fft.h \
 	include/filter_tables.h \
 	include/gauss_fir.h \
 	include/linsim_ui.h \
+	include/main.h \
 	include/noise_gen.h \
 	include/path.h \
 	include/sim.h \
@@ -132,6 +135,8 @@ EXTRA_DIST += \
 	$(srcdir)/../data/linsim.xpm \
 	$(srcdir)/../data/win32/fl_app.nsi \
 	$(srcdir)/../data/win32/linsim.ico \
+	$(srcdir)/../data/linsim.simulations.xls \
+	$(srcdir)/../data/linsim.simulations.csv \
 	$(srcdir)/../scripts/mknsisinst.sh \
 	$(srcdir)/../scripts/build.mxe \
 	$(srcdir)/../data/mac/Info.plist.in \

@@ -75,7 +75,7 @@ public:
 	double signal_rms;
 	double noise_rms;
 
-	void init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INFO &d);
+	void init(double sr, PATH_INFO &, PATH_INFO &, PATH_INFO &, DELAY_INFO &);
 
 	SoundFile sound_in;
 	SoundFile sound_out;

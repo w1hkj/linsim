@@ -54,7 +54,7 @@ SIM::~SIM()
 // Called before any Processing
 //----------------------------------------------------------------------
 
-void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INFO &d)
+void SIM::init(double sr, PATH_INFO &p_0, PATH_INFO &p_1, PATH_INFO &p_2, DELAY_INFO &d)
 {
 	numpaths = 0;
 
@@ -64,14 +64,14 @@ void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INF
 	noise_gen->InitNoiseGen();
 	fft->ResetFFT();
 
-	if(p0.active) numpaths++;
-	if(p1.active) numpaths++;
-	if(p2.active) numpaths++;
+	if(p_0.active) numpaths++;
+	if(p_1.active) numpaths++;
+	if(p_2.active) numpaths++;
 
 	if (numpaths) {
-		path0->InitPath( p0.active, p0.spread, p0.offset, p0.blocksize, samplerate, numpaths );
-		path1->InitPath( p1.active, p1.spread, p1.offset, p1.blocksize, samplerate, numpaths );
-		path2->InitPath( p2.active, p2.spread, p2.offset, p2.blocksize, samplerate, numpaths );
+		path0->InitPath( p_0.active, p_0.spread, p_0.offset, p_0.blocksize, samplerate, numpaths );
+		path1->InitPath( p_1.active, p_1.spread, p_1.offset, p_1.blocksize, samplerate, numpaths );
+		path2->InitPath( p_2.active, p_2.spread, p_2.offset, p_2.blocksize, samplerate, numpaths );
 		delay->SetDelays( d.delay1, d.delay2, samplerate );
 	}
 
@@ -111,7 +111,7 @@ void SIM::Process( double *samples, int BUF_SIZE)
 
 // Sum and Copy just the real part back into the real buffer for output
 		for (int i = 0; i < BUF_SIZE; i++)
-			sim_buffer[i] = (delay0_buffer[i].re + delay1_buffer[i].re + delay2_buffer[i].re) / numpaths; 
+			sim_buffer[i] = (delay0_buffer[i].re + delay1_buffer[i].re + delay2_buffer[i].re) / numpaths;
 	}
 
 // Add bandwidth limited noise
