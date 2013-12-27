@@ -63,11 +63,11 @@ public:
 enum {READ, WRITE};
 
 protected:
-	int		sample_frequency;
+	SNDFILE* snd_file;
 	int		format;
+	int		sample_frequency;
 	int		mode;
 
-	SNDFILE* snd_file;
 //	float    *wrt_buffer;
 
 	std::string fname;
