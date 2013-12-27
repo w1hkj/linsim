@@ -1,0 +1,209 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include <string>} {private local
+} 
+
+decl {\#include "sound.h"} {private local
+} 
+
+decl {\#include "sim_vals.h"} {private local
+} 
+
+decl {\#include "sim.h"} {private local
+} 
+
+decl {std::string fname_in;} {private local
+} 
+
+decl {std::string fname_out;} {private local
+} 
+
+decl {_vals sim_vals;} {private local
+} 
+
+decl {SIM sim_test;} {private local
+} 
+
+Function {make_linsim_window()} {open
+} {
+  code {fname_in.clear();
+fname_out.clear();} {}
+  Fl_Window linsim_window {
+    label {linsim v1.0.0} open
+    xywh {566 77 340 305} type Double visible
+  } {
+    Fl_Menu_Bar {} {open
+      xywh {0 0 453 20}
+    } {
+      Submenu {} {
+        label {&File} open
+        xywh {0 0 70 21}
+      } {
+        MenuItem {} {
+          label {E&xit}
+          callback {linsim_window->hide();}
+          xywh {0 0 36 21}
+        }
+      }
+    }
+    Fl_Output txt_input_file {
+      xywh {65 25 270 24} textsize 12
+    }
+    Fl_Output txt_output_file {
+      xywh {65 55 270 24} textsize 12
+    }
+    Fl_Group {} {open
+      xywh {8 83 328 51} box ENGRAVED_FRAME
+    } {
+      Fl_Check_Button p0_on {
+        label {Path 1}
+        callback {sim_vals.p0.active = o->value();}
+        xywh {22 99 70 19} down_box DOWN_BOX
+        code0 {o->value(sim_vals.p0.active);}
+      }
+      Fl_Input inp_spread0 {
+        label Spread
+        callback {sim_vals.p0.spread = atof(o->value());}
+        tooltip {spread in Hz (1 sigma)} xywh {180 105 70 24} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p0.spread);o->value(val);}
+      }
+      Fl_Input inp_offset0 {
+        label Offset
+        callback {sim_vals.p0.offset = atof(o->value());}
+        tooltip {frequency offset in Hz} xywh {255 105 70 24} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p0.offset);o->value(val);}
+      }
+    }
+    Fl_Group {} {open
+      xywh {9 139 328 51} box ENGRAVED_FRAME
+    } {
+      Fl_Check_Button p1_on {
+        label {Path 2}
+        callback {sim_vals.p1.active = o->value();}
+        xywh {23 155 70 19} down_box DOWN_BOX
+        code0 {o->value(sim_vals.p1.active);}
+      }
+      Fl_Input inp_delay1 {
+        label Delay
+        callback {sim_vals.d.delay1 = atof(o->value());}
+        tooltip {delay in milliseconds} xywh {101 158 70 25} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.d.delay1);o->value(val);}
+      }
+      Fl_Input inp_spread1 {
+        label Spread
+        callback {sim_vals.p1.spread = atof(o->value());}
+        tooltip {spread in Hz (1 sigma)} xywh {180 158 70 24} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p1.spread);o->value(val);}
+      }
+      Fl_Input inp_offset1 {
+        label Offset
+        callback {sim_vals.p1.offset = atof(o->value());}
+        tooltip {frequency offset in Hz} xywh {255 158 70 24} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p1.offset);o->value(val);}
+      }
+    }
+    Fl_Group {} {open
+      xywh {9 195 328 51} box ENGRAVED_FRAME
+    } {
+      Fl_Check_Button p2_on {
+        label {Path 3}
+        callback {sim_vals.p2.active = o->value();}
+        xywh {23 211 70 19} down_box DOWN_BOX
+        code0 {o->value(sim_vals.p2.active);}
+      }
+      Fl_Input inp_delay2 {
+        label Delay
+        callback {sim_vals.d.delay2 = atof(o->value());}
+        tooltip {delay in milliseconds} xywh {101 215 70 25} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.d.delay2);o->value(val);}
+      }
+      Fl_Input inp_spread2 {
+        label Spread
+        callback {sim_vals.p2.spread = atof(o->value());}
+        tooltip {spread in Hz (1 sigma)} xywh {180 215 70 24} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p2.spread);o->value(val);}
+      }
+      Fl_Input inp_offset2 {
+        label Offset
+        callback {sim_vals.p1.offset = atof(o->value());}
+        tooltip {frequency offset in Hz} xywh {255 215 70 24} type Float align 1
+        code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p2.offset);o->value(val);}
+      }
+    }
+    Fl_Group {} {open
+      xywh {10 250 166 51} box ENGRAVED_FRAME
+    } {
+      Fl_Check_Button inp_AWGN_on {
+        label AWGN
+        callback {sim_vals.AWGN_on = o->value();}
+        tooltip {Gaussian noise on/off} xywh {24 266 70 19} down_box DOWN_BOX
+        code0 {o->value(sim_vals.AWGN_on);}
+      }
+      Fl_Input inp_AWGN_rms {
+        label {S/N}
+        callback {sim_vals.snrdb = atof(o->value());}
+        tooltip {s/n in dB} xywh {101 270 70 25} type Float align 1
+        code0 {char val[20];}
+        code1 {snprintf(val, sizeof(val), "%4.1f", sim_vals.snrdb);}
+        code2 {o->value(val);}
+      }
+    }
+    Fl_Progress progress {
+      xywh {179 252 153 21}
+      code0 {\#include <FL/Fl_Progress.H>}
+      code1 {o->value(0);}
+      code2 {o->minimum(0); o->maximum(1);}
+      code3 {o->selection_color(FL_DARK_BLUE);}
+    }
+    Fl_Button btn_test {
+      label {Run Test}
+      callback {double buffer[MAX_BUF_SIZE];
+sim_test.AWGN(sim_vals.AWGN_on);
+sim_test.SetsnrValue(sim_vals.snrdb);
+sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
+if (fname_in.empty() || fname_out.empty()) return;
+sim_test.sound_in.open(fname_in, SoundFile::READ);
+size_t fsize = 0, r = 0, partial = 0;
+sim_test.signal_rms = 0.0;
+while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+  sim_test.measure_rms(buffer, MAX_BUF_SIZE);
+  fsize += r;
+}
+sim_test.sound_in.rewind();
+sim_test.sound_out.open(fname_out, SoundFile::WRITE);
+progress->value(0);
+progress->minimum(0);
+progress->maximum(fsize * 1.0);
+while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+  partial += r;
+  if ((partial / r) % 4 == 0) {
+    progress->value(partial*1.0);
+    progress->redraw();
+    Fl::flush();
+  }
+  sim_test.Process(buffer, r);
+  sim_test.sound_out.write(buffer, r);
+}
+progress->value(fsize * 1.0);
+sim_test.sound_in.close();
+sim_test.sound_out.close();
+progress->value(0);
+progress->redraw();}
+      xywh {261 277 70 24}
+    }
+    Fl_Button btn_select_input {
+      label Input
+      callback {fname_in = file_name("input.wav");
+txt_input_file->value(fname_in.c_str());}
+      xywh {3 25 60 24}
+    }
+    Fl_Button btn_select_output {
+      label Output
+      callback {fname_out = file_name("output.wav");
+txt_output_file->value(fname_out.c_str());}
+      xywh {4 55 60 24}
+    }
+  }
+} 

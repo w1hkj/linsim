@@ -1,0 +1,18 @@
+//======================================================================
+//  linsim; windows rc file
+//    Author: Dave Freese, W1HKJ <w1hkj@w1hkj.com>
+//
+//  based on the program RTTY Compare by
+//    Alex Shovkoplyas, VE3NEA ve3nea@dxatlas.com
+//  Original written in Pascal and distributed only for Windows OS
+//
+//  This program is distributed under the GPL license
+//======================================================================
+
+#include <windows.h> // include for version info constants
+
+#include "linsimrc.h"
+
+IDI_ICON ICON DISCARDABLE "linsim.ico"
+
+

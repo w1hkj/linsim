@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=linsim
+GenericName=HF Path Simulator
+Comment=Amateur Radio Communications
+Exec=linsim
+Icon=linsim
+Terminal=false
+Type=Application
+Categories=Other;HamRadio;
