@@ -247,13 +247,36 @@ int parse_args(int argc, char **argv, int& idx)
 	return 0;
 }
 
+void update_sim_vals()
+{
+	sim_vals.p0.active = p0_on->value();
+	sim_vals.p0.spread = atof(inp_spread0->value());
+	sim_vals.p0.offset = atof(inp_offset0->value());
+
+	sim_vals.p1.active = p1_on->value();
+	sim_vals.p1.spread = atof(inp_spread1->value());
+	sim_vals.p1.offset = atof(inp_offset1->value());
+
+	sim_vals.p2.active = p2_on->value();
+	sim_vals.p2.spread = atof(inp_spread2->value());
+	sim_vals.p2.offset = atof(inp_offset2->value());
+
+	sim_vals.d.delay1 = atof(inp_delay1->value());
+	sim_vals.d.delay2 = atof(inp_delay2->value());
+
+	sim_vals.AWGN_on  = inp_AWGN_on->value();
+	sim_vals.snrdb    = atof(inp_AWGN_rms->value());
+}
+
 void run_simulation()
 {
 	double buffer[MAX_BUF_SIZE];
 
+	update_sim_vals();
+
 	sim_test.AWGN(sim_vals.AWGN_on);
 	sim_test.SetsnrValue(sim_vals.snrdb);
-	sim_test.init(8000.0, sim_vals.p0, sim_vals.p0, sim_vals.p1, sim_vals.d);
+	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
 
 	if (fname_in.empty() || fname_out.empty()) return;
 		sim_test.sound_in.open(fname_in, SoundFile::READ);

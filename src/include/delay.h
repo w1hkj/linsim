@@ -26,24 +26,24 @@
 #define DELAY_H
 
 #include <math.h>
-#include "complex.h"
+#include "cmplx.h"
 
 class CDelay  
 {
 public:
-	void CreateDelays( complex* inbuf, complex* t1buf, complex* t2buf );
-	void SetDelays( double t1, double t2, double samplerate);
-	void calc_bpf(double* pIn, complex* pOut);
+	void CreateDelays( cmplx* inbuf, bool bt1, cmplx* t1buf, bool bt2, cmplx* t2buf );
+	void SetDelays( double t1, double t2);
+	void CalcBPFilter(double* pIn, cmplx* pOut);
 	CDelay();
 	virtual ~CDelay();
 
 private:
-	int FirState;
-	complex* pDelayLine;
-	complex* pQue;
-	int T1ptr;
-	int T2ptr;
-	int Inptr;
+	int m_FirState;
+	cmplx* m_pDelayLine;
+	cmplx* m_pQue;
+	int m_T1ptr;
+	int m_T2ptr;
+	int m_Inptr;
 };
 
 #endif

@@ -23,11 +23,10 @@
 #ifndef SIH
 #define SIH
 
-#include "fft.h"
 #include "noise_gen.h"
 #include "delay.h"
 #include "path.h"
-#include "complex.h"
+#include "cmplx.h"
 #include "sound.h"
 
 #define MAX_BUF_SIZE 2048	// maximum # of data values to process at a time
@@ -35,7 +34,7 @@
 //#define RMS_MAXAMPLITUDE 4000.0	//RMS amplitude out of 32768
 								// pick so that worst case Gaussian noise
 								// plus signals will not overflow soundcard
-#define RMSAVE 8 //20
+#define RMSAVE 20
 
 struct PATH_INFO {
 	bool active;
@@ -58,9 +57,6 @@ public:
 	void Process( double *samples, int BUF_SIZE);
 	void measure_rms( double *samples, int BUF_SIZE);
 
-	void SetFFTParams(int ave,double gain, int type ) {
-		if(fft) fft->SetFFTParams( ave, gain, type );
-	}
 	void SetsnrValue(double snrdb) {
 		snr = pow(10.0, snrdb/20.0);
 	}
@@ -75,7 +71,7 @@ public:
 	double signal_rms;
 	double noise_rms;
 
-	void init(double sr, PATH_INFO &, PATH_INFO &, PATH_INFO &, DELAY_INFO &);
+	void init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INFO &d);
 
 	SoundFile sound_in;
 	SoundFile sound_out;
@@ -88,10 +84,9 @@ private:
 	double snr;
 	double ssum;
 	double sim_buffer[MAX_BUF_SIZE];
-	complex delay0_buffer[MAX_BUF_SIZE];
-	complex delay1_buffer[MAX_BUF_SIZE];
-	complex delay2_buffer[MAX_BUF_SIZE];
-	Cfft* fft;
+	cmplx delay0_buffer[MAX_BUF_SIZE];
+	cmplx delay1_buffer[MAX_BUF_SIZE];
+	cmplx delay2_buffer[MAX_BUF_SIZE];
 	CDelay* delay;
 	CPath* path0;
 	CPath* path1;

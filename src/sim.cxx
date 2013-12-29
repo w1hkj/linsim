@@ -22,14 +22,16 @@
 
 #include "sim.h"
 
+#include <stdio.h>
+#include <string>
+
 SIM::SIM()
 {
-	fft = new Cfft;
+	noise_gen = new CNoiseGen;
+	delay = new CDelay;
 	path0 = new CPath;
 	path1 = new CPath;
 	path2 = new CPath;
-	delay = new CDelay;
-	noise_gen = new CNoiseGen;
 
 	ssum = 0.0;
 	snr = 1.0;
@@ -37,16 +39,15 @@ SIM::SIM()
 	signal_gain = 1.0;
 	b_awgn = false;
 	samplerate = 8000;
-
 }
 
 SIM::~SIM()
 {
-	if (noise_gen) delete noise_gen;
-	if (delay) delete delay;
-	if (path0) delete path0;
-	if (path1) delete path1;
-	if (path2) delete path2;
+	delete noise_gen;
+	delete delay;
+	delete path0;
+	delete path1;
+	delete path2;
 }
 
 //----------------------------------------------------------------------
@@ -54,7 +55,7 @@ SIM::~SIM()
 // Called before any Processing
 //----------------------------------------------------------------------
 
-void SIM::init(double sr, PATH_INFO &p_0, PATH_INFO &p_1, PATH_INFO &p_2, DELAY_INFO &d)
+void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INFO &d)
 {
 	numpaths = 0;
 
@@ -62,18 +63,15 @@ void SIM::init(double sr, PATH_INFO &p_0, PATH_INFO &p_1, PATH_INFO &p_2, DELAY_
 	signal_rms = RMS_MAXAMPLITUDE;
 
 	noise_gen->InitNoiseGen();
-	fft->ResetFFT();
 
-	if(p_0.active) numpaths++;
-	if(p_1.active) numpaths++;
-	if(p_2.active) numpaths++;
+	if(p0.active) numpaths++;
+	if(p1.active) numpaths++;
+	if(p2.active) numpaths++;
 
-	if (numpaths) {
-		path0->InitPath( p_0.active, p_0.spread, p_0.offset, p_0.blocksize, samplerate, numpaths );
-		path1->InitPath( p_1.active, p_1.spread, p_1.offset, p_1.blocksize, samplerate, numpaths );
-		path2->InitPath( p_2.active, p_2.spread, p_2.offset, p_2.blocksize, samplerate, numpaths );
-		delay->SetDelays( d.delay1, d.delay2, samplerate );
-	}
+	path0->InitPath( p0.spread, p0.offset, MAX_BUF_SIZE, numpaths, p0.active );
+	path1->InitPath( p1.spread, p1.offset, MAX_BUF_SIZE, numpaths, p1.active );
+	path2->InitPath( p2.spread, p2.offset, MAX_BUF_SIZE, numpaths, p2.active );
+	delay->SetDelays( d.delay1, d.delay2 );
 
 }
 
@@ -96,13 +94,22 @@ void SIM::measure_rms( double *samples, int BUF_SIZE)
 // ---------------------------------------------------------------------
 void SIM::Process( double *samples, int BUF_SIZE)
 {
-	for( int i = 0; i <BUF_SIZE; i++)
+	path0->blocksize(BUF_SIZE);
+	path1->blocksize(BUF_SIZE);
+	path2->blocksize(BUF_SIZE);
+
+	for( int i = 0; i < BUF_SIZE; i++) {
 		sim_buffer[i] = samples[i];
+		delay0_buffer[i] = delay1_buffer[i] = delay2_buffer[i] = cmplx(0,0);
+	}
 
 	if (numpaths) {
 //Bandpass filter into I and Q and get delayed versions of the input data
-		delay->calc_bpf(sim_buffer, delay0_buffer );
-		delay->CreateDelays(delay0_buffer, delay1_buffer, delay2_buffer);
+		delay->CalcBPFilter(sim_buffer, delay0_buffer);
+		delay->CreateDelays(
+					delay0_buffer,
+					path1->active(), delay1_buffer, 
+					path2->active(), delay2_buffer);
 
 //Calculate each path.
 		path0->CalcPath( delay0_buffer, delay0_buffer );
@@ -111,23 +118,19 @@ void SIM::Process( double *samples, int BUF_SIZE)
 
 // Sum and Copy just the real part back into the real buffer for output
 		for (int i = 0; i < BUF_SIZE; i++)
-			sim_buffer[i] = (delay0_buffer[i].re + delay1_buffer[i].re + delay2_buffer[i].re) / numpaths;
+			sim_buffer[i] = (delay0_buffer[i].x + delay1_buffer[i].x + delay2_buffer[i].x);
 	}
 
 // Add bandwidth limited noise
-	if (!b_awgn) {
-		signal_gain = 1.0;
-		noise_rms = 0.0;
-	} else {
+	if (b_awgn) {
 		if (snr >= 1.0) {
 			signal_gain = RMS_MAXAMPLITUDE / signal_rms;
 			noise_rms = (signal_gain * signal_rms) / snr;
-			noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, signal_gain, noise_rms);
 		} else {
-			signal_gain = (RMS_MAXAMPLITUDE*snr) / signal_rms;
+			signal_gain = (RMS_MAXAMPLITUDE * snr) / signal_rms;
 			noise_rms = RMS_MAXAMPLITUDE;
-			noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, signal_gain, RMS_MAXAMPLITUDE);
 		}
+		noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, signal_gain, noise_rms);
 	}
 
 	for (int i = 0; i < BUF_SIZE; i++)

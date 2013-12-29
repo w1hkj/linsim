@@ -21,94 +21,115 @@
 //
 // ---------------------------------------------------------------------
 
+// pathsim code
+
+#include <stdio.h>
+
 #include "delay.h"
 #include "filter_tables.h"
 
-#define MAXDELAY (50 * 8)					// 50 mSecs max delay
+#define MAXDELAY (50*8)					// 50mSecs max delay
 #define BLOCKSIZE 2048
-#define BUFSIZE (BLOCKSIZE + MAXDELAY)
+#define BUFSIZE (BLOCKSIZE+MAXDELAY)
 
-// ---------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-// ---------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////
 
 CDelay::CDelay()
 {
-	pDelayLine = new complex[BUFSIZE];
-	pQue = new complex[HILBPFIR_LENGTH];
-	Inptr = 0;
-	T1ptr = 0;
-	T2ptr = 0;
+	m_pDelayLine = new cmplx[BUFSIZE];
+	m_pQue = new cmplx[HILBPFIR_LENGTH];
+	m_Inptr = 0;
+	m_T1ptr = 0;
+	m_T2ptr = 0;
 }
 
 CDelay::~CDelay()
 {
-	if(pDelayLine)
-		delete pDelayLine;
-	if(pQue)
-		delete pQue;
+	if(m_pDelayLine)
+		delete m_pDelayLine;
+	if(m_pQue)
+		delete m_pQue;
 }
 
-// ---------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////
 //  Set delay times
-// ---------------------------------------------------------------------
-void CDelay::SetDelays( double t1, double t2, double samplerate )	//delays in msecs
+//////////////////////////////////////////////////////////////////////
+void CDelay::SetDelays( double t1, double t2)	//delays in msecs
 {
-	for(int i = 0; i < HILBPFIR_LENGTH; i++) {
-		pQue[i].re = 0.0;
-		pQue[i].im = 0.0;
+	int i;
+	for (i = 0; i < HILBPFIR_LENGTH; i++) {
+		m_pQue[i] = cmplx(0,0);
 	}
-	for(int i = 0; i < BUFSIZE; i++) {
-		pDelayLine[i] = complex(0, 0);
+	for (i = 0; i < BUFSIZE; i++) {
+		m_pDelayLine[i] = cmplx(0,0);
 	}
-	Inptr = BUFSIZE - 1;
-	FirState = HILBPFIR_LENGTH - 1;
-	T1ptr = BUFSIZE - (int)(samplerate * t1 / 1000.0) - 1;
-	T2ptr = BUFSIZE - (int)(samplerate * t2 / 1000.0) - 1;
+	m_Inptr = BUFSIZE-1;
+	m_FirState = HILBPFIR_LENGTH-1;
+
+	int delay1 = (int)(8 * t1);
+	int delay2 = (int)(8 * t2);
+
+	if (delay1 > MAXDELAY) delay1 = MAXDELAY;
+	m_T1ptr = BUFSIZE - delay1 - 1;
+	if (m_T1ptr < 1) m_T1ptr = 1;
+
+	if (delay2 > MAXDELAY) delay2 = MAXDELAY;
+	m_T2ptr = BUFSIZE - delay2 - 1;
+	if (m_T1ptr < 1) m_T1ptr = 1;
 }
 
-// ---------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////
 //  Uses pointers to create variable delays
-// ---------------------------------------------------------------------
-void CDelay::CreateDelays( complex* inbuf, complex* t1buf, complex* t2buf )
+//////////////////////////////////////////////////////////////////////
+void CDelay::CreateDelays( cmplx* inbuf, bool bt1, cmplx* t1buf, bool bt2, cmplx* t2buf )
 {
-	for (int i = 0; i < BLOCKSIZE; i++) {
-		pDelayLine[Inptr++] = inbuf[i]; // copy new data from inbuf into delay buffer
-		if( Inptr >= BUFSIZE )
-			Inptr = 0;
-		t1buf[i] = pDelayLine[T1ptr++];
-		if( T1ptr >= BUFSIZE )
-			T1ptr = 0;
-		t2buf[i] = pDelayLine[T2ptr++];
-		if( T2ptr >= BUFSIZE )
-			T2ptr = 0;
+	int i;
+	if (!bt1 && !bt2) return;
+	for (i = 0; i < BLOCKSIZE; i++) {
+		m_pDelayLine[m_Inptr++] = inbuf[i]; // copy new data from inbuf into delay buffer
+		if( m_Inptr >= BUFSIZE ) m_Inptr = 0;
+		if (bt1) {
+			t1buf[i] = m_pDelayLine[m_T1ptr++];
+			if( m_T1ptr >= BUFSIZE ) m_T1ptr = 0;
+		}
+		if (bt2) {
+			t2buf[i] = m_pDelayLine[m_T2ptr++];
+			if (m_T2ptr >= BUFSIZE ) m_T2ptr = 0;
+		}
 	}
 }
 
 
-// ---------------------------------------------------------------------
+//////////////////////////////////////////////////////////////////////
 // Hilbert 3KHz BP filters.  Real input and complex I/Q output
 //   This FIR bandwidth limits the real input as well as creates a
 //   complex I/Q output signal for the rest of the processing chain.
-// ---------------------------------------------------------------------
-void CDelay::calc_bpf(double* pIn, complex* pOut)
+//////////////////////////////////////////////////////////////////////
+void CDelay::CalcBPFilter(double* pIn, cmplx* pOut)
 {
-complex acc;
-const complex* Kptr;
-complex* Firptr;
-	for(int i = 0; i < BLOCKSIZE; i++) {
-		pQue[FirState].re = pIn[i]; //place real values in circular Queue
-		pQue[FirState].im = pIn[i];
-		Firptr = pQue;
-		Kptr = HilbertBPFirCoef + HILBPFIR_LENGTH - FirState;
-		acc = complex(0, 0);
-		for (int j = 0; j < HILBPFIR_LENGTH; j++) {
-			acc += (*Firptr) * (*Kptr);
-			Firptr++;
-			Kptr++;
+	cmplx acc;
+	const double* IKptr;
+	const double* QKptr;
+	cmplx* Firptr;
+	int i, j;
+
+	for (i = 0; i < BLOCKSIZE; i++) {
+		m_pQue[m_FirState].x = pIn[i];	//place real values in circular Queue
+		m_pQue[m_FirState].y = pIn[i];
+		Firptr = m_pQue;
+		IKptr = IHilbertBPFirCoef+HILBPFIR_LENGTH-m_FirState;
+		QKptr = QHilbertBPFirCoef+HILBPFIR_LENGTH-m_FirState;
+		acc.x = 0.0;
+		acc.y = 0.0;
+		for(j=0; j<	HILBPFIR_LENGTH;j++) {
+			acc.x += ( (Firptr->x)*(*IKptr++) );
+			acc.y += ( (Firptr++->y)*(*QKptr++) );
 		}
-		pOut[i] = acc;
-		if (--FirState < 0)
-			FirState = HILBPFIR_LENGTH - 1;
+		pOut[i].x = acc.x;
+		pOut[i].y = acc.y;
+		if( --m_FirState < 0) m_FirState = HILBPFIR_LENGTH-1;
 	}
 }
+

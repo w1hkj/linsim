@@ -26,43 +26,41 @@
 #include <math.h>
 #include "filter_tables.h"
 #include "gauss_fir.h"
+#include "cmplx.h"
+
+// pathsim original
 
 class CPath  
 {
 public:
-	void CalcPath( complex* pIn, complex* pOut);
-	void InitPath(
-		bool &active,
-		double &Spread, double &Offset, int &blocksize,
-		double &Samplerate, int &numpaths);
+	void CalcPath( cmplx* pIn, cmplx* pOut);
+	void InitPath( double Spread, double Offset, int blocksize,int numpaths, bool active);
 	CPath();
 	virtual ~CPath();
+	bool active() { return m_PathActive;}
+	void blocksize( int b ) {m_BlockSize = b;}
 
 private:
-	complex		MakeGaussianDelaySample();
-
-	int			m_IIRLength;
-	int			m_NoiseSampRate;
-	bool		m_PathActive;
-	int			m_inc;
-	int			m_BlockSize;
-	int			m_Indx;
-	double		m_Offset;
-	double		m_Spread;
-	double		m_LPGain;
-	double	 	m_Timeinc;
-	double		samplerate;
-
-	complex		m_pQue0[INTP_QUE_SIZE];
-	complex		m_pQue1[INTP_QUE_SIZE];
-	complex		m_pQue2[INTP_QUE_SIZE];
-	complex		m_pQue3[INTP_QUE_SIZE];
-	int			m_FirState0;
-	int			m_FirState1;
-	int			m_FirState2;
-	int			m_FirState3;
-
-	CGaussFIR	*m_pLPFIR;
+	int m_IIRLength;
+	cmplx MakeGaussianDelaySample();
+	int m_NoiseSampRate;
+	bool m_PathActive;
+	int m_inc;
+	int m_BlockSize;
+	int m_Indx;
+	double m_Offset;
+	double m_Spread;
+	double m_LPGain;
+	double m_Timeinc;
+	cmplx m_pQue0[INTP_QUE_SIZE];
+	cmplx m_pQue1[INTP_QUE_SIZE];
+	cmplx m_pQue2[INTP_QUE_SIZE];
+	cmplx m_pQue3[INTP_QUE_SIZE];
+	int m_FirState0;
+	int m_FirState1;
+	int m_FirState2;
+	int m_FirState3;
+	CGaussFIR* m_pLPFIR;
 
 };
 

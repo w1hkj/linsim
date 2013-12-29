@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------
 // GaussFIR.h: interface for the CGaussFIR class.
 //
-//    A Gaussian shaped complex FIR LP filter class.
+//    A Gaussian shaped cmplx FIR LP filter class.
 // ---------------------------------------------------------------------
 // Copyright 2000, Moe Wheatley AE4JY <ae4jy@mindspring.com>
 // Modified  2013, Dave Freese W1HKJ  <w1hkj@w1hkj.com>
@@ -25,7 +25,7 @@
 #define GAUSS_H
 
 #include <math.h>
-#include "complex.h"
+#include "cmplx.h"
 
 class CGaussFIR  
 {
@@ -33,13 +33,13 @@ public:
 	void Init( double Fs, double F2sig );
 	CGaussFIR();
 	virtual ~CGaussFIR();
-	complex CalcFilter(complex in);
+	cmplx CalcFilter(cmplx in);
 
 private:
 	double* m_pCoef;
 	int m_FIRlen;
 	int m_FirState;
-	complex* m_pQue;
+	cmplx* m_pQue;
 
 	double dnorm(double x, double mu, double sigma);
 };

@@ -25,6 +25,8 @@
 
 #include "filter_tables.h"
 
+// pathsim original
+
 class CNoiseGen  
 {
 public:
@@ -37,5 +39,20 @@ private:
 	double m_pQue[HILBPFIR_LENGTH];
 	int m_FirState;
 };
+
+/* linsim implementation
+class CNoiseGen  
+{
+public:
+	void InitNoiseGen();
+	void AddBWLimitedNoise(int bufsize,double* pIn, double siggain, double RMSlevel);
+	CNoiseGen();
+	virtual ~CNoiseGen();
+
+private:
+	double m_pQue[HILBPFIR_LENGTH];
+	int m_FirState;
+};
+*/
 
 #endif
