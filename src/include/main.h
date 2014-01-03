@@ -36,3 +36,13 @@ extern void cancel_selection();
 extern void delete_selection(int);
 extern void update_selection(int);
 extern void select_entry(int);
+
+extern void load_simulation_set();
+extern void save_simulation_set();
+extern void save_simulation_set_as();
+extern void populate_batch_selector();
+extern void cancel_batch_process();
+extern void batch_process_items();
+extern void open_batch_process_dialog();
+extern void clear_all_simulation();
+extern void select_all_simulations();

@@ -83,11 +83,16 @@ public:
 	vector<csvRecord> dbrecs;
 
 	csvdb() {
-		dbfilename.assign("linsim.simulations.csv");
+		dbfilename.clear();
+		cur_recnbr = 0;
+	}
+	csvdb(string fname) {
+		dbfilename.assign(fname);
 		cur_recnbr = 0;
 	}
 	~csvdb() {}
 	void filename(string fname) { dbfilename.assign(fname); }
+	string filename() { return dbfilename; }
 	int save();
 	int load();
 	void load_defaults();

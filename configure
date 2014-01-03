@@ -624,6 +624,8 @@ FLTK_CFLAGS
 FLTK_CONFIG
 SNDFILE_LIBS
 SNDFILE_CFLAGS
+SAMPLERATE_LIBS
+SAMPLERATE_CFLAGS
 X_LIBS
 X_CFLAGS
 PKG_CONFIG_LIBDIR
@@ -793,6 +795,8 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 X_CFLAGS
 X_LIBS
+SAMPLERATE_CFLAGS
+SAMPLERATE_LIBS
 SNDFILE_CFLAGS
 SNDFILE_LIBS
 FLTK_CONFIG
@@ -1461,6 +1465,10 @@ Some influential environment variables:
               path overriding pkg-config's built-in search path
   X_CFLAGS    C compiler flags for X, overriding pkg-config
   X_LIBS      linker flags for X, overriding pkg-config
+  SAMPLERATE_CFLAGS
+              C compiler flags for SAMPLERATE, overriding pkg-config
+  SAMPLERATE_LIBS
+              linker flags for SAMPLERATE, overriding pkg-config
   SNDFILE_CFLAGS
               C compiler flags for SNDFILE, overriding pkg-config
   SNDFILE_LIBS
@@ -7130,6 +7138,216 @@ _ACEOF
 
 fi
 
+### libsamplerate
+# Required if $ac_cv_want_fldigi is "yes"
+# Set ac_cv_samplerate to yes/no    (not used)
+# Define USE_SAMPLERATE in config.h (as above)
+# Substitute SAMPLERATE_CFLAGS and SAMPLERATE_LIBS in Makefile
+
+
+
+
+
+ac_cv_want_samplerate=yes
+
+test "x$ac_cv_want_samplerate" = "x" && ac_cv_want_samplerate="check"
+case "x$ac_cv_want_samplerate" in
+    "xno")
+            ac_cv_samplerate=no
+            ;;
+    "xcheck")
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SAMPLERATE" >&5
+$as_echo_n "checking for SAMPLERATE... " >&6; }
+
+if test -n "$SAMPLERATE_CFLAGS"; then
+    pkg_cv_SAMPLERATE_CFLAGS="$SAMPLERATE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"samplerate >= 0.1.1\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "samplerate >= 0.1.1") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SAMPLERATE_CFLAGS=`$PKG_CONFIG --cflags "samplerate >= 0.1.1" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SAMPLERATE_LIBS"; then
+    pkg_cv_SAMPLERATE_LIBS="$SAMPLERATE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"samplerate >= 0.1.1\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "samplerate >= 0.1.1") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SAMPLERATE_LIBS=`$PKG_CONFIG --libs "samplerate >= 0.1.1" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SAMPLERATE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "samplerate >= 0.1.1" 2>&1`
+        else
+	        SAMPLERATE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "samplerate >= 0.1.1" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SAMPLERATE_PKG_ERRORS" >&5
+
+	ac_cv_samplerate=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	ac_cv_samplerate=no
+else
+	SAMPLERATE_CFLAGS=$pkg_cv_SAMPLERATE_CFLAGS
+	SAMPLERATE_LIBS=$pkg_cv_SAMPLERATE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	ac_cv_samplerate=yes
+fi
+            ;;
+    "xyes")
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SAMPLERATE" >&5
+$as_echo_n "checking for SAMPLERATE... " >&6; }
+
+if test -n "$SAMPLERATE_CFLAGS"; then
+    pkg_cv_SAMPLERATE_CFLAGS="$SAMPLERATE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"samplerate >= 0.1.1\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "samplerate >= 0.1.1") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SAMPLERATE_CFLAGS=`$PKG_CONFIG --cflags "samplerate >= 0.1.1" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SAMPLERATE_LIBS"; then
+    pkg_cv_SAMPLERATE_LIBS="$SAMPLERATE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"samplerate >= 0.1.1\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "samplerate >= 0.1.1") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SAMPLERATE_LIBS=`$PKG_CONFIG --libs "samplerate >= 0.1.1" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SAMPLERATE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "samplerate >= 0.1.1" 2>&1`
+        else
+	        SAMPLERATE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "samplerate >= 0.1.1" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SAMPLERATE_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (samplerate >= 0.1.1) were not met:
+
+$SAMPLERATE_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables SAMPLERATE_CFLAGS
+and SAMPLERATE_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables SAMPLERATE_CFLAGS
+and SAMPLERATE_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	SAMPLERATE_CFLAGS=$pkg_cv_SAMPLERATE_CFLAGS
+	SAMPLERATE_LIBS=$pkg_cv_SAMPLERATE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+	    # if we get here the test has succeeded
+            ac_cv_samplerate=yes
+            ;;
+esac
+
+if test "x$ac_cv_samplerate" = "xyes"; then
+
+$as_echo "#define USE_SAMPLERATE 1" >>confdefs.h
+
+    pkg_samplerate_version=`$PKG_CONFIG --modversion "samplerate >= 0.1.1" 2>/dev/null`
+else
+
+$as_echo "#define USE_SAMPLERATE 0" >>confdefs.h
+
+    pkg_samplerate_version=""
+fi
+
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SAMPLERATE_BUILD_VERSION "$pkg_samplerate_version"
+_ACEOF
+
+
+:
+
+
 ### libsndfile
 # Set ac_cv_sndfile to yes/no
 # Define USE_SNDFILE in config.h
@@ -7873,14 +8091,14 @@ fi
       linsim_BUILD_CPPFLAGS="$linsim_BUILD_CPPFLAGS -D_WINDOWS"
   fi
 # CXXFLAGS
-  linsim_BUILD_CXXFLAGS="$FLTK_CFLAGS $linsim_BUILD_CPPFLAGS $SNDFILE_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS $PTW32_CFLAGS"
+  linsim_BUILD_CXXFLAGS="$FLTK_CFLAGS $linsim_BUILD_CPPFLAGS $SNDFILE_CFLAGS $SAMPLERATE_CFLAGS -pipe -Wall -fexceptions $OPT_CFLAGS $DEBUG_CFLAGS $PTW32_CFLAGS"
   if test "x$target_mingw32" = "xyes"; then
       linsim_BUILD_CXXFLAGS="-mthreads $linsim_BUILD_CXXFLAGS -D_WINDOWS"
   fi
 # LDFLAGS
   linsim_BUILD_LDFLAGS=
 # LDADD
-  linsim_BUILD_LDADD="$FLTK_LIBS $X_LIBS $SNDFILE_LIBS $EXTRA_LIBS $PTW32_LIBS"
+  linsim_BUILD_LDADD="$FLTK_LIBS $X_LIBS $SNDFILE_LIBS $SAMPLERATE_LIBS $EXTRA_LIBS $PTW32_LIBS"
 
   if test "x$ac_cv_debug" = "xyes"; then
       linsim_BUILD_CXXFLAGS="$linsim_BUILD_CXXFLAGS -UNDEBUG"

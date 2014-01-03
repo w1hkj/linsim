@@ -81,12 +81,17 @@ void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INF
 void SIM::measure_rms( double *samples, int BUF_SIZE)
 {
 	ssum = 0.0;
-	for( int i = 0; i <BUF_SIZE; i++)
-		ssum += ( samples[i]*samples[i] );
-	ssum /= BUF_SIZE;
-
-//Simple IIR LP filter the rms averages
-	signal_rms = (1.0 / RMSAVE) * sqrt(ssum) + (1.0 - 1.0 / RMSAVE)*signal_rms;
+	double smpl;
+	for( int i = 0; i <BUF_SIZE; i++) {
+		smpl = samples[i];
+		ssum += ( smpl * smpl );
+		if (fabs(smpl) > signal_peak) signal_peak = fabs(smpl);
+	}
+	if (ssum > (BUF_SIZE / 16384.0)) { // at least 2 bits of signal
+		ssum /= BUF_SIZE;
+		num_buffs++;
+		signal_rms = (signal_rms * (num_buffs - 1) + ssum) / num_buffs;
+	}
 }
 
 // ---------------------------------------------------------------------
@@ -123,13 +128,6 @@ void SIM::Process( double *samples, int BUF_SIZE)
 
 // Add bandwidth limited noise
 	if (b_awgn) {
-		if (snr >= 1.0) {
-			signal_gain = RMS_MAXAMPLITUDE / signal_rms;
-			noise_rms = (signal_gain * signal_rms) / snr;
-		} else {
-			signal_gain = (RMS_MAXAMPLITUDE * snr) / signal_rms;
-			noise_rms = RMS_MAXAMPLITUDE;
-		}
 		noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, signal_gain, noise_rms);
 	}
 

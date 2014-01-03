@@ -15,6 +15,7 @@ extern Fl_Output *txt_output_file;
 extern Fl_Button *btn_select_simulation;
 #include <FL/Fl_Input.H>
 extern Fl_Input *txt_simulation;
+extern Fl_Output *txt_simulations_filename;
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Check_Button.H>
 extern Fl_Check_Button *p0_on;
@@ -34,11 +35,30 @@ extern Fl_Float_Input *inp_AWGN_rms;
 #include <FL/Fl_Progress.H>
 extern Fl_Progress *progress;
 extern Fl_Button *btn_test;
+extern Fl_Group *lbl_batch;
 Fl_Double_Window* make_linsim_window();
 extern Fl_Menu_Item menu_[];
-#define mnuAddSimulation (menu_+4)
-#define mnuSelectSimulation (menu_+5)
+#define mnu_open_simulation_set (menu_+1)
+#define mnu_save_simulation_set (menu_+2)
+#define mnu_save_simulation_set_as (menu_+3)
+#define mnuAddSimulation (menu_+7)
+#define mnuBatchProcess (menu_+8)
+#define mnu_sr_as_input (menu_+11)
+#define mnu_sr_8000 (menu_+12)
+#define mnu_sr_11025 (menu_+13)
+#define mnu_sr_16000 (menu_+14)
+#define mnu_sr_22050 (menu_+15)
+#define mnu_sr_24000 (menu_+16)
+#define mnu_sr_44100 (menu_+17)
+#define mnu_sr_48000 (menu_+18)
+#include <FL/Fl_Check_Browser.H>
+extern Fl_Check_Browser *tbl_batch_simulations;
+extern Fl_Button *btn_cancel_batch;
+extern Fl_Button *btn_clear_batch_selections;
+extern Fl_Button *btn_all_batch;
 #include <FL/Fl_Return_Button.H>
+extern Fl_Return_Button *btn_batch_process;
+Fl_Double_Window* make_batch_selector_dialog();
 extern Fl_Return_Button *btn_select;
 #include <FL/Fl_Browser.H>
 extern Fl_Browser *tbl_simulations;

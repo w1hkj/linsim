@@ -47,8 +47,15 @@
 
 #define	SND_BUF_LEN      65536
 #define SNDFILE_CHANNELS 1
+#define SND_BUF_LEN	 65536
+#define SND_RW_LEN	(8 * SND_BUF_LEN)
 
 using namespace std;
+
+int inpfile_samplerate = 8000;
+int outfile_samplerate = 8000;
+int linsim_samplerate = 8000;
+SF_INFO wav_file_info;
 
 //----------------------------------------------------------------------
 // support for picking a filename
@@ -73,6 +80,28 @@ SoundFile::SoundFile(std::string _fname, int _mode, int freq)
 	mode = _mode;
 	sample_frequency = freq;
 	if (!fname.empty()) open(fname, mode);
+
+	int err;
+	writ_src_data = new SRC_DATA;
+	read_src_data = new SRC_DATA;
+
+	writ_src_state = src_new(SRC_SINC_MEDIUM_QUALITY, 1, &err);
+	if (writ_src_state == 0)
+		throw SndException(src_strerror(err));
+
+	read_src_state = src_new(SRC_SINC_MEDIUM_QUALITY, 1, &err);
+	if (read_src_state == 0)
+		throw SndException(src_strerror(err));
+
+	if (read_src_state == 0)
+		throw SndException(src_strerror(err));
+	src_out_buffer = new float [SND_RW_LEN];
+	if (!src_out_buffer)
+		throw SndException(src_strerror(err));
+	src_inp_buffer = new float [SND_RW_LEN];
+	if (!src_inp_buffer)
+		throw SndException(src_strerror(err));
+	inp_pointer = src_out_buffer;
 }
 
 SoundFile::~SoundFile()
@@ -86,32 +115,77 @@ int SoundFile::open(std::string _fname, int _mode)
 	fname = _fname;
 	mode = _mode;
 	if (mode == WRITE) {
-		SF_INFO info = { 0, sample_frequency, SNDFILE_CHANNELS, format, 0, 0 };
-		if ((snd_file = sf_open(fname.c_str(), SFM_WRITE, &info)) == NULL) {
+		write_info.frames = 0 ;
+		write_info.samplerate = outfile_samplerate;
+		write_info.channels = wav_file_info.channels;
+		write_info.format = wav_file_info.format;
+		write_info.sections = 0;
+		write_info.seekable = 0;
+/*
+printf("WRITE\n\
+frames : %d\n\
+samplerate : %d\n\
+channesl : %d\n\
+format: %d\n\
+sections: %d\n\
+seekable: %d\n", 
+static_cast<unsigned int>(write_info.frames),
+write_info.samplerate, write_info.channels, write_info.format,
+write_info.sections, write_info.seekable);
+*/
+		if ((snd_file = sf_open(fname.c_str(), SFM_WRITE, &write_info)) == NULL) {
 			fprintf(stderr, "Could not write %s:%s", fname.c_str(), sf_strerror(NULL) );
 			return 0;
 		}
 		if (sf_command(snd_file, SFC_SET_UPDATE_HEADER_AUTO, NULL, SF_TRUE) != SF_TRUE)
 			fprintf(stderr, "sound file update header command failed: %s", sf_strerror(snd_file));
-			tag_file(snd_file, "linsim output");
+		tag_file(snd_file, "linsim output");
+
+		writ_src_data->src_ratio = 1.0 * outfile_samplerate / linsim_samplerate;
+
+//printf("write ratio %f\n", writ_src_data->src_ratio);
+
+		src_set_ratio(writ_src_state, writ_src_data->src_ratio);
+
 	} else {
 		if (fname.empty())
 			return -1;
-		SF_INFO info = { 0, 0, 0, 0, 0, 0 };
-		if ((snd_file = sf_open(fname.c_str(), SFM_READ, &info)) == NULL) {
+		read_info.frames = 0 ;
+		read_info.samplerate = 0;
+		read_info.channels = 0;
+		read_info.format = 0;
+		read_info.sections = 0;
+		read_info.seekable = 0;
+		if ((snd_file = sf_open(fname.c_str(), SFM_READ, &read_info)) == NULL) {
 			fprintf(stderr, "Could not read %s:%s", fname.c_str(), sf_strerror(NULL) );
 			return -2;
 		}
-		if (info.samplerate != 8000) {
-			sf_close(snd_file);
-			snd_file = NULL;
-			return -3;
-		}
-		if (info.channels != 1) {
+		if (read_info.channels != 1) {
 			sf_close(snd_file);
 			snd_file = NULL;
 			return -4;
 		}
+/*
+printf("READ\n\
+frames : %d\n\
+samplerate : %d\n\
+channesl : %d\n\
+format: %d\n\
+sections: %d\n\
+seekable: %d\n", 
+static_cast<unsigned int>(read_info.frames),
+read_info.samplerate, read_info.channels, read_info.format,
+read_info.sections, read_info.seekable);
+*/
+wav_file_info = read_info;
+
+		inpfile_samplerate = read_info.samplerate;
+		read_src_data->src_ratio = 1.0 * linsim_samplerate / inpfile_samplerate;
+		src_set_ratio(read_src_state, read_src_data->src_ratio);
+		memset(src_inp_buffer, 0, 1024 * sizeof(float));
+
+//printf("read ratio %f\n", read_src_data->src_ratio);
+
 	}
 	return 0; 
 }
@@ -126,51 +200,6 @@ void SoundFile::close()
 void SoundFile::rewind()
 {
 	sf_seek(snd_file, 0, SEEK_SET);
-}
-
-size_t SoundFile::read(float* buf, size_t count)
-{
-	if (!snd_file || mode != READ) return 0;
-
-	size_t r = sf_read_float(snd_file, buf, count);
-	if (r == 0) return 0;
-
-	size_t rd = 0;
-	while (r < count) {
-		rd = sf_read_float(snd_file, buf + r, count - r);
-		if (rd == 0) break;
-		r += rd;
-	}
-	return r;
-}
-
-size_t SoundFile::read(double* buf, size_t count)
-{
-	if (!snd_file || mode != READ) return 0;
-
-	size_t r = sf_read_double(snd_file, buf, count);
-	if (r == 0) return 0;
-
-	size_t rd = 0;
-	while (r < (size_t)count) {
-		sf_seek(snd_file, 0, SEEK_CUR);
-		rd = sf_read_double(snd_file, buf + r, count - r);
-		if (rd == 0) break;
-		r += rd;
-	}
-	return r;
-}
-
-size_t SoundFile::write(float* buf, size_t count)
-{
-	if (!snd_file || mode != WRITE) return count;
-	return (sf_write_float(snd_file, buf, count));
-}
-
-size_t SoundFile::write(double* buf, size_t count)
-{
-	if (!snd_file || mode != WRITE) return count;
-	return (sf_write_double(snd_file, buf, count));
 }
 
 void SoundFile::tag_file(SNDFILE *sndfile, const char *title)
@@ -193,3 +222,91 @@ void SoundFile::tag_file(SNDFILE *sndfile, const char *title)
 	if (strftime(s, sizeof(s), "%Y-%m-%dT%H:%M:%Sz", zt) > 0)
 		sf_set_string(sndfile, SF_STR_DATE, s);
 }
+
+// ---------------------------------------------------------------------
+// read_file
+// source samplerate is arbitrary, linsim samplerate is 8000
+// read from file and resample until a "count" number of converted samples
+// is available, or until at the end of the input file
+// ---------------------------------------------------------------------
+size_t SoundFile::read(float* buf, size_t count)
+{
+	sf_count_t r = 0, rd_count = 0;
+	int err = 0;
+
+	memset(src_inp_buffer, 0, 1024 * sizeof(float));
+
+	while ( static_cast<size_t>(inp_pointer - src_out_buffer) < count) {
+		rd_count = sf_readf_float(snd_file, src_inp_buffer, 1024);
+		if (!rd_count) break;
+		read_src_data->data_in = src_inp_buffer;
+		read_src_data->input_frames = rd_count;
+		read_src_data->data_out = inp_pointer;
+		read_src_data->output_frames = SND_RW_LEN - (inp_pointer - src_out_buffer);
+		read_src_data->end_of_input = 0;
+
+		if ((err = src_process(read_src_state, read_src_data)) != 0)
+			throw SndException(src_strerror(err));
+
+		inp_pointer += read_src_data->output_frames_gen;
+	}
+
+	if ( static_cast<size_t>(inp_pointer - src_out_buffer) >= count) {
+		memcpy(buf, src_out_buffer, count * sizeof(float));
+		memmove(src_out_buffer, src_out_buffer + count, (SND_RW_LEN - count) * sizeof(float));
+		inp_pointer -= count;
+		r = count;
+	}
+
+	if (r == 0) {
+		src_reset (read_src_state);
+		inp_pointer = src_out_buffer;
+	}
+	return (size_t)r;
+}
+
+size_t SoundFile::read(double* buf, size_t count)
+{
+	float buffer[count];
+	sf_count_t r =read(buffer, count);
+	for (sf_count_t i = 0; i < r; i++) buf[i] = buffer[i];
+	return (size_t)r;
+}
+
+// ---------------------------------------------------------------------
+// write_file
+//----------------------------------------------------------------------
+
+size_t SoundFile::write(float* buf, size_t count)
+{
+	int err;
+
+	writ_src_data->data_in = buf;
+	writ_src_data->input_frames = count;
+	writ_src_data->data_out = src_out_buffer;
+	writ_src_data->output_frames = SND_RW_LEN;
+	writ_src_data->end_of_input = 0;
+
+	if ((err = src_process(writ_src_state, writ_src_data)) != 0) {
+		throw SndException(src_strerror(err));
+	}
+
+	size_t output_size = writ_src_data->output_frames_gen;
+
+	if (output_size)
+		sf_writef_float(snd_file, writ_src_data->data_out, output_size);
+
+	return output_size;
+
+}
+
+size_t SoundFile::write(double* buf, size_t count)
+{
+	float *outbuf = new float[count];
+	for (size_t i = 0; i < count; i++)
+		outbuf[i] = buf[i];
+	size_t output_size = write(outbuf, count);
+	delete [] outbuf;
+	return output_size;
+}
+

@@ -127,6 +127,13 @@ if test "x$target_darwin" = "xno" && test "x$target_win32" = "xno"; then
     AC_linsim_PKG_CHECK([x], [x11], [no], [yes])
 fi
 
+### libsamplerate
+# Required if $ac_cv_want_fldigi is "yes"
+# Set ac_cv_samplerate to yes/no    (not used)
+# Define USE_SAMPLERATE in config.h (as above)
+# Substitute SAMPLERATE_CFLAGS and SAMPLERATE_LIBS in Makefile
+AC_linsim_PKG_CHECK([samplerate], [samplerate >= 0.1.1], [no], [no])
+
 ### libsndfile
 # Set ac_cv_sndfile to yes/no
 # Define USE_SNDFILE in config.h

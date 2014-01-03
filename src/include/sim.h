@@ -68,8 +68,12 @@ public:
 	void AWGN( bool val) { b_awgn = val; }
 	bool AWGN() { return b_awgn; }
 
+	double snr;
 	double signal_rms;
 	double noise_rms;
+	double signal_gain;
+	size_t  num_buffs;
+	double signal_peak;
 
 	void init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INFO &d);
 
@@ -80,8 +84,6 @@ private:
 	bool b_awgn;
 	int    numpaths;
 	double samplerate;
-	double signal_gain;
-	double snr;
 	double ssum;
 	double sim_buffer[MAX_BUF_SIZE];
 	cmplx delay0_buffer[MAX_BUF_SIZE];

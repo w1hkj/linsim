@@ -11,6 +11,8 @@
 
 #include "main.h"
 #include <string>
+#include <vector>
+
 #include "sound.h"
 
 #include <fstream>
@@ -36,6 +38,7 @@
 #include <FL/Fl_Menu_Item.H>
 
 #include "config.h"
+#include "sound.h"
 
 #ifdef WIN32
 #	include "linsimrc.h"
@@ -57,6 +60,8 @@
 #	include <dirent.h>
 #endif
 
+using namespace std;
+
 #include <FL/x.H>
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Image.H>
@@ -64,7 +69,6 @@
 
 string BaseDir = "";
 string HomeDir = "";
-
 
 #define KNAME "linsim"
 #if !defined(__WIN32__) && !defined(__APPLE__)
@@ -94,10 +98,11 @@ void make_pixmap(Pixmap *xpm, const char **data)
 csvdb simulations;
 SIM sim_test;
 _vals sim_vals;
-std::string fname_in;
-std::string fname_out;
+string fname_in;
+string fname_out;
 
 Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
+Fl_Double_Window *batch_process_selector = (Fl_Double_Window *)0;
 
 char title[50];
 char progdir[80];
@@ -227,6 +232,8 @@ int main(int argc, char **argv)
 	linsim_window->show(argc, argv);
 #endif
 
+	simulations.filename(HomeDir.append("linsim.simulations.csv"));
+	txt_simulations_filename->value("linsim.simulations.csv");
 	simulations.load();
 
 	return Fl::run();
@@ -268,9 +275,31 @@ void update_sim_vals()
 	sim_vals.snrdb    = atof(inp_AWGN_rms->value());
 }
 
+void set_output_sr()
+{
+	if (mnu_sr_as_input->value() == true)
+		outfile_samplerate = inpfile_samplerate;
+	else if (mnu_sr_8000->value() == true)
+		outfile_samplerate = 8000;
+	else if (mnu_sr_11025->value() == true)
+		outfile_samplerate = 11025;
+	else if (mnu_sr_16000->value() == true)
+		outfile_samplerate = 16000;
+	else if (mnu_sr_22050->value() == true)
+		outfile_samplerate = 22050;
+	else if (mnu_sr_24000->value() == true)
+		outfile_samplerate = 24000;
+	else if (mnu_sr_44100->value() == true)
+		outfile_samplerate = 44100;
+	else if (mnu_sr_48000->value() == true)
+		outfile_samplerate = 48000;
+}
+
 void run_simulation()
 {
 	double buffer[MAX_BUF_SIZE];
+	vector<double> inpbuff;
+	vector<double> outbuff;
 
 	update_sim_vals();
 
@@ -279,29 +308,111 @@ void run_simulation()
 	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
 
 	if (fname_in.empty() || fname_out.empty()) return;
-		sim_test.sound_in.open(fname_in, SoundFile::READ);
-		size_t fsize = 0, r = 0, partial = 0;
-		sim_test.signal_rms = 0.0;
-		while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
-			sim_test.measure_rms(buffer, MAX_BUF_SIZE);
-			fsize += r;
-		}
-		sim_test.sound_in.rewind();
-		sim_test.sound_out.open(fname_out, SoundFile::WRITE);
-		progress->value(0);
-		progress->minimum(0);
-		progress->maximum(fsize * 1.0);
-		while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
-			partial += r;
-			if ((partial / r) % 4 == 0) {
-				progress->value(partial*1.0);
-				progress->redraw();
-				Fl::flush();
-		}
-		sim_test.Process(buffer, r);
-		sim_test.sound_out.write(buffer, r);
+	sim_test.sound_in.open(fname_in, SoundFile::READ);
+
+	size_t fsize = 0, r = 0;
+	sim_test.signal_rms = 0.0;
+	progress->label("Analyzing input");
+	progress->redraw_label();
+	Fl::flush();
+	sim_test.signal_rms = 0.0;
+	sim_test.num_buffs = 0;
+	size_t buffs_read = 0;
+	sim_test.signal_peak = 0;
+	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
+	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+		sim_test.measure_rms(buffer, MAX_BUF_SIZE);
+		fsize += r;
+		buffs_read++;
+		for (size_t j = 0; j < MAX_BUF_SIZE; j++)
+			inpbuff.push_back(buffer[j]);
+		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
+		Fl::flush();
 	}
+
+	if (sim_test.signal_peak > 1.0 / 65536.0) {
+		sim_test.signal_peak *= 3;
+		for (size_t pq = 0; pq < inpbuff.size(); pq++)
+			inpbuff[pq] /= sim_test.signal_peak;
+		sim_test.signal_rms = sqrt(sim_test.signal_rms) / sim_test.signal_peak;
+	} else {
+		sim_test.signal_rms = 2.0 / 65536.0;
+	}
+
+	if (sim_test.snr >= 1.0) {
+		sim_test.signal_gain = RMS_MAXAMPLITUDE / sim_test.signal_rms;
+		sim_test.noise_rms = (sim_test.signal_gain * sim_test.signal_rms) / sim_test.snr;
+	} else {
+		sim_test.signal_gain = (RMS_MAXAMPLITUDE * sim_test.snr) / sim_test.signal_rms;
+		sim_test.noise_rms = RMS_MAXAMPLITUDE;
+	}
+/*
+printf("Input file size %d\n", static_cast<unsigned int>(fsize));
+printf("Read %d buffers; processed %d buffers\n", buffs_read, sim_test.num_buffs);
+printf("Target s/n %f\n", sim_test.snr);
+printf("signal RMS %f\n", sim_test.signal_rms);
+printf("signal gain %f, noise RMS %f\n", sim_test.signal_gain, sim_test.noise_rms);
+printf("signal peak %f, signal peak out %f\n", sim_test.signal_peak,
+	sim_test.signal_peak * sim_test.signal_gain);
+*/
+//		sim_test.sound_in.rewind();
+
+	sim_test.sound_in.close();
+
+	if (sim_test.sound_out.open(fname_out, SoundFile::WRITE) != 0) {
+		printf("Could not open sound file for WRITE.\n");
+		exit(0);
+	}
+	progress->value(0);
+	progress->minimum(0);
+	progress->maximum(inpbuff.size() * 1.0);
+	progress->label("Running Simulation");
+	progress->redraw_label();
+
+	for (size_t pq = 0; pq < inpbuff.size(); pq += MAX_BUF_SIZE) {
+		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
+		for (size_t k = 0; k < MAX_BUF_SIZE; k++)
+			buffer[k] = inpbuff[pq + k];
+		if ((pq / MAX_BUF_SIZE) %4 == 0) {
+			progress->value(pq*1.0);
+			progress->redraw();
+			Fl::flush();
+		}
+		sim_test.Process(buffer, MAX_BUF_SIZE);
+		for (size_t j = 0; j < MAX_BUF_SIZE; j++)
+			outbuff.push_back(buffer[j]);
+	}
+
+// normalize the output wav file to a max value of 0.707 to prevent clipping
+	progress->value(0);
+	progress->minimum(0);
+	progress->maximum(outbuff.size() * 1.0);
+	progress->label("Writing output");
+	progress->redraw_label();
+
+	double maxout = 0, absval;
+	for (size_t n = 0; n < outbuff.size(); n++) {
+		absval = fabs(outbuff[n]);
+		if (absval > maxout) maxout = absval;
+	}
+	if (maxout == 0) maxout = 0.707;
+	for (size_t n = 0; n < outbuff.size(); n++)
+		outbuff[n] *= (0.707 / maxout);
+
+	set_output_sr();
+
+	for (size_t n = 0; n < outbuff.size(); n += MAX_BUF_SIZE) {
+		sim_test.sound_out.write(&outbuff[n], MAX_BUF_SIZE);
+		if ((n / MAX_BUF_SIZE) % 4 == 0) {
+			progress->value(n*1.0);
+			progress->redraw();
+			Fl::flush();
+		}
+	}
+
 	progress->value(fsize * 1.0);
+	progress->label("");
+	progress->redraw_label();
 	sim_test.sound_in.close();
 	sim_test.sound_out.close();
 	progress->value(0);
@@ -434,5 +545,154 @@ void select_simulation()
 	if (!simulator_selector) simulator_selector = make_selector_dialog();
 	populate_simulation_selector();
 	simulator_selector->show();
+}
+
+void populate_batch_selector()
+{
+	tbl_batch_simulations->clear();
+	if (simulations.numrecs() == 0) return;
+	simulations.sort();
+	for (int n = 0; n < simulations.numrecs(); n++)
+		tbl_batch_simulations->add(simulations.dbrecs[n].title.c_str());
+	tbl_batch_simulations->redraw();
+}
+
+void clear_all_simulation()
+{
+	tbl_batch_simulations->check_none();
+}
+
+void select_all_simulations()
+{
+	tbl_batch_simulations->check_all();
+}
+
+void cancel_batch_process()
+{
+	batch_process_selector->hide();
+}
+
+void process_batch_item(int n)
+{
+	if (!n) return;
+	n--;
+
+	txt_simulation->value(simulations.dbrecs[n].title.c_str());
+
+	bool b = simulations.dbrecs[n].p0 == "1";
+	p0_on->value(b);
+	inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
+	inp_offset0->value(simulations.dbrecs[n].offset_0.c_str());
+
+	b = simulations.dbrecs[n].p1 == "1";
+	p1_on->value(b);
+	inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
+	inp_spread1->value(simulations.dbrecs[n].spread_1.c_str());
+	inp_offset1->value(simulations.dbrecs[n].offset_1.c_str());
+
+	b = simulations.dbrecs[n].p2 == "1";
+	p2_on->value(b);
+	inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
+	inp_spread2->value(simulations.dbrecs[n].spread_2.c_str());
+	inp_offset2->value(simulations.dbrecs[n].offset_2.c_str());
+
+	b = simulations.dbrecs[n].awgn == "1";
+	inp_AWGN_on->value(b);
+	inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
+
+	run_simulation();
+}
+
+void clear_main_dialog()
+{
+	txt_simulation->value("");
+
+	p0_on->value(0);
+	inp_spread0->value("");
+	inp_offset0->value("");
+	p1_on->value(0);
+	inp_delay1->value("");
+	inp_spread1->value("");
+	inp_offset1->value("");
+	p2_on->value(0);
+	inp_delay2->value("");
+	inp_spread2->value("");
+	inp_offset2->value("");
+	inp_AWGN_on->value(0);
+	inp_AWGN_rms->value("");
+
+	txt_output_file->value("");
+	txt_input_file->value("");
+	fname_in = fname_out = "";
+
+}
+
+void batch_process_items()
+{
+	batch_process_selector->hide();
+	string basename = fname_in;
+	string simname;
+	if (basename.empty()) {
+		printf("enter input file name");
+		return;
+	}
+	size_t p = basename.find(".wav");
+	if (p != string::npos) basename.erase(p);
+	basename.append(".");
+
+	lbl_batch->show();
+	for (int n = 1; n <= tbl_batch_simulations->nitems(); n++) {
+		if (tbl_batch_simulations->checked(n)) {
+			fname_out.assign(basename);
+			simname.assign(tbl_batch_simulations->text(n));
+			while ((p = simname.find("(")) != string::npos) simname.erase(p,1);
+			while ((p = simname.find(")")) != string::npos) simname.erase(p,1);
+			while ((p = simname.find("/")) != string::npos) simname[p] = '_';
+			while ((p = simname.find("-")) != string::npos) simname[p] = '_';
+			while ((p = simname.find(" ")) != string::npos) simname[p] = '_';
+			fname_out.append(simname).append(".wav");
+			txt_output_file->value(fname_out.c_str());
+			process_batch_item(n);
+		}
+	}
+	lbl_batch->hide();
+	clear_main_dialog();
+}
+
+void open_batch_process_dialog()
+{
+	if (!batch_process_selector) batch_process_selector = make_batch_selector_dialog();
+	if (simulations.numrecs() == 0) return;
+	populate_batch_selector();
+	batch_process_selector->show();
+}
+
+void load_simulation_set()
+{
+	char *picked = fl_file_chooser ( 
+						"Load Simulation Set",
+						"*.csv", 
+						simulations.filename().c_str(), 1);
+	if (!picked) return;
+	simulations.filename(picked);
+	if (simulations.load() == 0)
+		txt_simulations_filename->value(fl_filename_name(simulations.filename().c_str()));
+}
+
+void save_simulation_set()
+{
+	simulations.save();
+}
+
+void save_simulation_set_as()
+{
+	char *picked = fl_file_chooser ( 
+						"Save Simulation Set",
+						"*.csv", 
+						simulations.filename().c_str(), 1);
+	if (!picked) return;
+	simulations.filename(picked);
+	if (simulations.save() == 0)
+		txt_simulations_filename->value(fl_filename_name(simulations.filename().c_str()));
 }
 

@@ -10,43 +10,81 @@
 
 #include "csv.h"
 
-extern string HomeDir;
-
 csvRecord defaults[] = {
+csvRecord("AWGN S/N",
+"1", "10",  
+"0",        "0",  "0",  
+"0",  "0",  "0",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("CCIR 520-2 (Doppler Fading)",
-"0",  "0",  "1","0.2", "10",  "1","0.5","0.2",  "5",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "0.2", "10",  
+"1","0.5","0.2", "5",  "0",  "0",  "0",  "0"),
 csvRecord("CCIR 520-2 (Flutter Fading)",
-"0",  "0",  "1",  "1", "10",  "1","0.5", "10", "10",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",       "10", "0",  
+"1","0.5", "10", "0",  "0",  "0",  "0",  "0"),
 csvRecord("CCIR 520-2 (Good Conditions)",
-"0",  "0",  "1",  "1","0.1",  "1","0.5","0.1","0.1",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "0.1", "0",  
+"1","0.5","0.1", "0",  "0",  "0",  "0",  "0"),
 csvRecord("CCIR-520-2 (Moderate Conditions)",
-"0",  "0",  "1",  "1","0.5",  "1",  "1","0.5","0.5",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "0.5",  "0",  
+"1",  "1","0.5",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("CCIR-520-2 (Poor Conditions)",
-"0",  "0",  "1",  "1","0.5",  "1",  "2","0.5","0.5",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "0.5",  "0",  
+"1",  "2","0.5",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Direct Path",
-"1", "10",  "0",  "0",  "0",  "0",  "0",  "0",  "0",  "0",  "0",  "0",  "0"),
+"0", "10",  
+"0",        "0",  "0",  
+"0",  "0",  "0",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Frequency Shifter",
-"0",  "0",  "1",  "0","500",  "0",  "0",  "0",  "0",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",        "0","500",  
+"0",  "0",  "0",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("High-Latitude Disturbed",
-"0",  "0",  "1",  "1", "30",  "1",  "7", "30", "30",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",       "30",  "0",  
+"1",  "7", "30",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("High-Latitude Moderate",
-"0",  "0",  "1",  "1", "10",  "1",  "3", "10", "10",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",       "10",  "0",  
+"1",  "3", "10",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("High-Latitude Quiet",
-"0",  "0",  "1",  "1","0.5",  "1",  "1","0.5","0.5",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "0.5",  "0",  
+"1",  "1","0.5",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Mid-Latitude Disturbed",
-"0",  "0",  "1",  "1",  "1",  "1",  "2",  "1",  "1",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",        "1",  "0",  
+"1",  "2",  "1",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Mid-Latitude Disturbed NVIS",
-"0",  "0",  "1",  "1",  "1",  "1",  "7",  "1",  "1",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",        "1",  "0",  
+"1",  "7",  "1",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Mid-Latitude Moderate",
-"0",  "0",  "1",  "1","0.5",  "1",  "1","0.5","0.5",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "0.5",  "0",  
+"1",  "1","0.5",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Mid-Latitude Quiet",
-"0",  "0",  "1",  "1","0.5",  "1","0.5","0.1","0.1",  "0",  "0",  "0",  "0"),
+"0",  "0", 
+ "1",      "0.5",  "0",  
+ "1","0.5","0.5",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Low-Latitude Disturbed",
-"0",  "0",  "1",  "1", "10",  "1",  "6", "10", "10",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",       "10",  "0",  
+"1",  "6", "10",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Low-Latitude Moderate",
-"0",  "0",  "1",  "1","1.5",  "1",  "2","1.5","1.5",  "0",  "0",  "0",  "0"),
+"0",  "0",  
+"1",      "1.5",  "0",  
+"1",  "2","1.5",  "0",  "0",  "0",  "0",  "0"),
 csvRecord("Low-Latitude Quiet",
-"0",  "0",  "1",  "1","0.5",  "1","0.5","0.5","0.5",  "0",  "0",  "0",  "0") };
+"0",  "0",  
+"1",      "0.5",  "0",  
+"1","0.5","0.5",  "0",  "0",  "0",  "0",  "0") };
+
+extern string HomeDir;
 
 void csvdb::load_defaults()
 {
@@ -56,6 +94,9 @@ void csvdb::load_defaults()
 
 	for (size_t n = 0; n < sizeof(defaults) / sizeof(csvRecord); n++)
 		dbrecs.push_back(defaults[n]);
+
+	filename(HomeDir.append("linsim.simulations.csv"));
+
 }
 
 enum FIELDS {
@@ -204,9 +245,7 @@ int csvdb::load()
 {
 #define LINESIZE 1024
 	char buff[LINESIZE + 1];
-	string pathname = HomeDir;
-	pathname.append(dbfilename);
-	fstream dbfile(pathname.c_str(), ios::in | ios::binary);
+	fstream dbfile(dbfilename.c_str(), ios::in | ios::binary);
 	if (!dbfile) {
 		load_defaults();
 		return 0;
@@ -306,9 +345,7 @@ void csvdb::sort()
 
 int csvdb::save()
 {
-	string pathname = HomeDir;
-	pathname.append(dbfilename);
-	fstream dbfile(pathname.c_str(), ios::out | ios::binary);
+	fstream dbfile(dbfilename.c_str(), ios::out | ios::binary);
 	if (!dbfile) return -1;
 
 	sort();

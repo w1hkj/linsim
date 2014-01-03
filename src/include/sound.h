@@ -31,8 +31,9 @@
 #include <cstring>
 #include <climits>
 
-#  include <sndfile.h>
-/*
+#include <sndfile.h>
+#include <samplerate.h>
+
 class SndException : public std::exception
 {
 public:
@@ -54,7 +55,6 @@ protected:
 	int		err;
 	std::string	msg;
 };
-*/
 
 #define SNDFILE_CHANNELS 1
 
@@ -68,7 +68,18 @@ protected:
 	int		sample_frequency;
 	int		mode;
 
-//	float    *wrt_buffer;
+	SF_INFO read_info;
+	SF_INFO write_info;
+
+	SRC_STATE	*writ_src_state;
+	SRC_STATE	*read_src_state;
+
+	SRC_DATA	*writ_src_data;
+	SRC_DATA	*read_src_data;
+
+	float		*src_out_buffer;
+	float		*src_inp_buffer;
+	float		*inp_pointer;
 
 	std::string fname;
 
@@ -81,10 +92,10 @@ public:
 	void    close();
 
 	size_t  write(float *buf, size_t count);
-	size_t  read(float *, size_t);
+	size_t  read(float *buf, size_t count);
 
 	size_t  write(double *buf, size_t count);
-	size_t  read(double *, size_t);
+	size_t  read(double *buf, size_t count);
 
 	void rewind();
 
@@ -93,5 +104,7 @@ public:
 };
 
 extern std::string file_name(std::string def_fname);
+extern int inpfile_samplerate;
+extern int outfile_samplerate;
 
 #endif // SOUND_H

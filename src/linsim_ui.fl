@@ -26,7 +26,7 @@ Function {make_linsim_window()} {open
 fname_out.clear();} {}
   Fl_Window linsim_window {
     label {linsim v1.0.0} open
-    xywh {565 87 340 340} type Double visible
+    xywh {533 48 340 365} type Double visible
   } {
     Fl_Menu_Bar {} {open
       xywh {0 0 340 22}
@@ -35,6 +35,21 @@ fname_out.clear();} {}
         label {&File} open
         xywh {0 0 70 21}
       } {
+        MenuItem mnu_open_simulation_set {
+          label {&Open}
+          callback {load_simulation_set();}
+          tooltip {Load set of simulation models} xywh {0 0 36 21}
+        }
+        MenuItem mnu_save_simulation_set {
+          label {&Save}
+          callback {save_simulation_set();}
+          tooltip {Save simulation set} xywh {0 0 36 21}
+        }
+        MenuItem mnu_save_simulation_set_as {
+          label {Save &As}
+          callback {save_simulation_set_as();}
+          tooltip {Save as a new set} xywh {0 0 36 21} divider
+        }
         MenuItem {} {
           label {E&xit}
           callback {clean_exit();}
@@ -48,11 +63,49 @@ fname_out.clear();} {}
         MenuItem mnuAddSimulation {
           label {&Add}
           callback {add_simulation();}
+          xywh {0 0 36 21} divider
+        }
+        MenuItem mnuBatchProcess {
+          label Batch
+          callback {open_batch_process_dialog();}
           xywh {0 0 36 21}
         }
-        MenuItem mnuSelectSimulation {
-          label {&Select}
-          xywh {0 0 36 21}
+      }
+      Submenu {} {
+        label {&Samplerate} open
+        tooltip {Set output sampling rate} xywh {0 0 70 21}
+      } {
+        MenuItem mnu_sr_as_input {
+          label {Same as input} selected
+          xywh {0 0 36 21} type Radio value 1
+        }
+        MenuItem mnu_sr_8000 {
+          label 8000 selected
+          xywh {0 0 36 21} type Radio
+        }
+        MenuItem mnu_sr_11025 {
+          label 11025 selected
+          xywh {50 50 36 21} type Radio
+        }
+        MenuItem mnu_sr_16000 {
+          label 16000 selected
+          xywh {10 10 36 21} type Radio
+        }
+        MenuItem mnu_sr_22050 {
+          label 22050 selected
+          xywh {20 20 36 21} type Radio
+        }
+        MenuItem mnu_sr_24000 {
+          label 24000 selected
+          xywh {30 30 36 21} type Radio
+        }
+        MenuItem mnu_sr_44100 {
+          label 44100 selected
+          xywh {40 40 36 21} type Radio
+        }
+        MenuItem mnu_sr_48000 {
+          label 48000 selected
+          xywh {50 50 36 21} type Radio
         }
       }
     }
@@ -82,104 +135,108 @@ txt_output_file->value(fname_out.c_str());}
     Fl_Input txt_simulation {
       xywh {65 84 270 24}
     }
+    Fl_Output txt_simulations_filename {
+      label {Models:}
+      tooltip {Set of simulation models in use} xywh {65 113 270 24}
+    }
     Fl_Group {} {open
-      xywh {8 112 328 51} box ENGRAVED_FRAME
+      xywh {8 142 328 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button p0_on {
         label {Path 1}
         callback {sim_vals.p0.active = o->value();}
-        xywh {22 128 70 19} down_box DOWN_BOX
+        xywh {22 158 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.p0.active);}
       }
       Fl_Input inp_spread0 {
         label Spread
         callback {sim_vals.p0.spread = atof(o->value());}
-        tooltip {spread in Hz (1 sigma)} xywh {180 134 70 24} type Float align 1
+        tooltip {spread in Hz (1 sigma)} xywh {180 164 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p0.spread);o->value(val);}
       }
       Fl_Input inp_offset0 {
         label Offset
         callback {sim_vals.p0.offset = atof(o->value());}
-        tooltip {frequency offset in Hz} xywh {255 134 70 24} type Float align 1
+        tooltip {frequency offset in Hz} xywh {255 164 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p0.offset);o->value(val);}
       }
     }
     Fl_Group {} {open
-      xywh {9 168 328 51} box ENGRAVED_FRAME
+      xywh {9 198 328 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button p1_on {
         label {Path 2}
         callback {sim_vals.p1.active = o->value();}
-        xywh {23 184 70 19} down_box DOWN_BOX
+        xywh {23 214 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.p1.active);}
       }
       Fl_Input inp_delay1 {
         label Delay
         callback {sim_vals.d.delay1 = atof(o->value());}
-        tooltip {delay in milliseconds} xywh {101 187 70 25} type Float align 1
+        tooltip {delay in milliseconds} xywh {101 217 70 25} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.d.delay1);o->value(val);}
       }
       Fl_Input inp_spread1 {
         label Spread
         callback {sim_vals.p1.spread = atof(o->value());}
-        tooltip {spread in Hz (1 sigma)} xywh {180 187 70 24} type Float align 1
+        tooltip {spread in Hz (1 sigma)} xywh {180 217 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p1.spread);o->value(val);}
       }
       Fl_Input inp_offset1 {
         label Offset
         callback {sim_vals.p1.offset = atof(o->value());}
-        tooltip {frequency offset in Hz} xywh {255 187 70 24} type Float align 1
+        tooltip {frequency offset in Hz} xywh {255 217 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p1.offset);o->value(val);}
       }
     }
     Fl_Group {} {open
-      xywh {9 224 328 51} box ENGRAVED_FRAME
+      xywh {9 254 328 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button p2_on {
         label {Path 3}
         callback {sim_vals.p2.active = o->value();}
-        xywh {23 240 70 19} down_box DOWN_BOX
+        xywh {23 270 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.p2.active);}
       }
       Fl_Input inp_delay2 {
         label Delay
         callback {sim_vals.d.delay2 = atof(o->value());}
-        tooltip {delay in milliseconds} xywh {101 244 70 25} type Float align 1
+        tooltip {delay in milliseconds} xywh {101 274 70 25} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.d.delay2);o->value(val);}
       }
       Fl_Input inp_spread2 {
         label Spread
         callback {sim_vals.p2.spread = atof(o->value());}
-        tooltip {spread in Hz (1 sigma)} xywh {180 244 70 24} type Float align 1
+        tooltip {spread in Hz (1 sigma)} xywh {180 274 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p2.spread);o->value(val);}
       }
       Fl_Input inp_offset2 {
         label Offset
         callback {sim_vals.p1.offset = atof(o->value());}
-        tooltip {frequency offset in Hz} xywh {255 244 70 24} type Float align 1
+        tooltip {frequency offset in Hz} xywh {255 274 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p2.offset);o->value(val);}
       }
     }
     Fl_Group {} {open
-      xywh {10 279 166 51} box ENGRAVED_FRAME
+      xywh {9 309 166 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button inp_AWGN_on {
         label AWGN
         callback {sim_vals.AWGN_on = o->value();}
-        tooltip {Gaussian noise on/off} xywh {24 295 70 19} down_box DOWN_BOX
+        tooltip {Gaussian noise on/off} xywh {23 325 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.AWGN_on);}
       }
       Fl_Input inp_AWGN_rms {
         label {S/N}
         callback {sim_vals.snrdb = atof(o->value());}
-        tooltip {s/n in dB} xywh {101 299 70 25} type Float align 1
+        tooltip {s/n in dB} xywh {100 329 70 25} type Float align 1
         code0 {char val[20];}
         code1 {snprintf(val, sizeof(val), "%4.1f", sim_vals.snrdb);}
         code2 {o->value(val);}
       }
     }
     Fl_Progress progress {
-      xywh {179 281 153 21}
+      xywh {179 311 153 21}
       code0 {\#include <FL/Fl_Progress.H>}
       code1 {o->value(0);}
       code2 {o->minimum(0); o->maximum(1);}
@@ -188,7 +245,43 @@ txt_output_file->value(fname_out.c_str());}
     Fl_Button btn_test {
       label {Run Test}
       callback {run_simulation();}
-      xywh {261 306 70 24}
+      xywh {261 336 70 24}
+    }
+    Fl_Group lbl_batch {
+      label BATCH open
+      xywh {180 335 80 25} labelfont 1 labelcolor 1 align 16 hide
+    } {}
+  }
+} 
+
+Function {make_batch_selector_dialog()} {open
+} {
+  Fl_Window {} {
+    label {Batch Processing} open
+    xywh {887 49 340 280} type Double hide resizable
+  } {
+    Fl_Check_Browser tbl_batch_simulations {
+      tooltip {check simulations to batch process} xywh {0 0 340 245} resizable
+    }
+    Fl_Button btn_cancel_batch {
+      label Cancel
+      callback {cancel_batch_process();}
+      tooltip {Cancel - no change in model} xywh {5 252 70 22}
+    }
+    Fl_Button btn_clear_batch_selections {
+      label Clear
+      callback {clear_all_simulation();}
+      tooltip {De-select all models} xywh {86 252 70 22}
+    }
+    Fl_Button btn_all_batch {
+      label All
+      callback {select_all_simulations();}
+      tooltip {Select all models} xywh {168 252 70 22}
+    }
+    Fl_Return_Button btn_batch_process {
+      label Process
+      callback {batch_process_items();}
+      tooltip {Use checked simulation models} xywh {250 252 84 22}
     }
   }
 } 
@@ -197,31 +290,31 @@ Function {make_selector_dialog()} {open
 } {
   Fl_Window {} {
     label {Select Simulation Model} open
-    xywh {565 453 340 150} type Double resizable visible
+    xywh {539 425 340 270} type Double hide resizable
   } {
     Fl_Button {} {
       label Cancel
       callback {cancel_selection();}
-      tooltip {Cancel - no change in model} xywh {165 125 70 20}
+      tooltip {Cancel - no change in model} xywh {165 245 70 20}
     }
     Fl_Return_Button btn_select {
       label Select
       callback {select_entry(tbl_simulations->value());}
-      tooltip {Use hi-lighted model} xywh {245 125 84 20}
+      tooltip {Use hi-lighted model} xywh {245 245 84 20}
     }
     Fl_Browser tbl_simulations {
-      callback {tbl_simulations_selected();} selected
-      tooltip {Select & highlight model} xywh {0 0 340 120} type Hold resizable
+      callback {tbl_simulations_selected();}
+      tooltip {Select & highlight model} xywh {0 0 340 240} type Hold resizable
     }
     Fl_Button btn_delete_selection {
       label Delete
       callback {delete_selection(tbl_simulations->value());}
-      tooltip {Delete hi-lighted simulation} xywh {5 125 70 20} deactivate
+      tooltip {Delete hi-lighted simulation} xywh {5 245 70 20} deactivate
     }
     Fl_Button btn_update_selection {
       label Update
       callback {update_selection(tbl_simulations->value());}
-      tooltip {Update hi-lighted simulation} xywh {85 125 70 20} deactivate
+      tooltip {Update hi-lighted simulation} xywh {85 245 70 20} deactivate
     }
   }
 } 
