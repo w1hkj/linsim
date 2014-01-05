@@ -29,7 +29,7 @@ fname_out.clear();} {}
     xywh {533 48 340 365} type Double visible
   } {
     Fl_Menu_Bar {} {open
-      xywh {0 0 340 22}
+      xywh {0 0 290 22}
     } {
       Submenu {} {
         label {&File} open
@@ -76,36 +76,50 @@ fname_out.clear();} {}
         tooltip {Set output sampling rate} xywh {0 0 70 21}
       } {
         MenuItem mnu_sr_as_input {
-          label {Same as input} selected
+          label {Same as input}
           xywh {0 0 36 21} type Radio value 1
         }
         MenuItem mnu_sr_8000 {
-          label 8000 selected
+          label 8000
           xywh {0 0 36 21} type Radio
         }
         MenuItem mnu_sr_11025 {
-          label 11025 selected
+          label 11025
           xywh {50 50 36 21} type Radio
         }
         MenuItem mnu_sr_16000 {
-          label 16000 selected
+          label 16000
           xywh {10 10 36 21} type Radio
         }
         MenuItem mnu_sr_22050 {
-          label 22050 selected
+          label 22050
           xywh {20 20 36 21} type Radio
         }
         MenuItem mnu_sr_24000 {
-          label 24000 selected
+          label 24000
           xywh {30 30 36 21} type Radio
         }
         MenuItem mnu_sr_44100 {
-          label 44100 selected
+          label 44100
           xywh {40 40 36 21} type Radio
         }
         MenuItem mnu_sr_48000 {
-          label 48000 selected
+          label 48000
           xywh {50 50 36 21} type Radio
+        }
+      }
+    }
+    Fl_Menu_Bar {} {open
+      xywh {291 0 50 22}
+    } {
+      Submenu {} {
+        label {&Help} open
+        xywh {0 0 70 21}
+      } {
+        MenuItem {} {
+          label {&About}
+          callback {about();}
+          xywh {0 0 36 21}
         }
       }
     }
@@ -121,7 +135,7 @@ txt_input_file->value(fname_in.c_str());}
     Fl_Button btn_select_output {
       label Output
       callback {fname_out = file_name("output.wav");
-txt_output_file->value(fname_out.c_str());}
+txt_output_file->value(fname_out.c_str());} selected
       xywh {4 55 60 24}
     }
     Fl_Output txt_output_file {

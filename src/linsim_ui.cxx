@@ -58,6 +58,17 @@ Fl_Menu_Item menu_[] = {
  {0,0,0,0,0,0,0,0,0}
 };
 
+static void cb_About(Fl_Menu_*, void*) {
+  about();
+}
+
+Fl_Menu_Item menu_1[] = {
+ {"&Help", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&About", 0,  (Fl_Callback*)cb_About, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {0,0,0,0,0,0,0,0,0},
+ {0,0,0,0,0,0,0,0,0}
+};
+
 Fl_Button *btn_select_input=(Fl_Button *)0;
 
 static void cb_btn_select_input(Fl_Button*, void*) {
@@ -178,8 +189,11 @@ Fl_Double_Window* make_linsim_window() {
   fname_in.clear();
   fname_out.clear();
   { linsim_window = new Fl_Double_Window(340, 365, "linsim v1.0.0");
-    { Fl_Menu_Bar* o = new Fl_Menu_Bar(0, 0, 340, 22);
+    { Fl_Menu_Bar* o = new Fl_Menu_Bar(0, 0, 290, 22);
       o->menu(menu_);
+    } // Fl_Menu_Bar* o
+    { Fl_Menu_Bar* o = new Fl_Menu_Bar(291, 0, 50, 22);
+      o->menu(menu_1);
     } // Fl_Menu_Bar* o
     { btn_select_input = new Fl_Button(3, 26, 60, 24, "Input");
       btn_select_input->callback((Fl_Callback*)cb_btn_select_input);

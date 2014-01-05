@@ -16,13 +16,13 @@
 #include "sim.h"
 #include "csv.h"
 
-extern string HomeDir;
+extern std::string HomeDir;
+extern std::string fname_in;
+extern std::string fname_out;
 
 extern csvdb simulations;
 extern SIM sim_test;
 extern _vals sim_vals;
-extern std::string fname_in;
-extern std::string fname_out;
 
 extern void clean_exit();
 extern int parse_args(int argc, char **argv, int& idx);
@@ -46,3 +46,6 @@ extern void batch_process_items();
 extern void open_batch_process_dialog();
 extern void clear_all_simulation();
 extern void select_all_simulations();
+extern void about();
+
+

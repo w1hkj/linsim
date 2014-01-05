@@ -36,6 +36,7 @@
 #include <FL/x.H>
 #include <FL/Fl_Help_Dialog.H>
 #include <FL/Fl_Menu_Item.H>
+#include <FL/fl_ask.H>
 
 #include "config.h"
 #include "sound.h"
@@ -696,3 +697,15 @@ void save_simulation_set_as()
 		txt_simulations_filename->value(fl_filename_name(simulations.filename().c_str()));
 }
 
+char szAbout[200];
+
+void about()
+{
+    snprintf (szAbout, sizeof(szAbout),"\
+%s\n\n\
+HF path simulation program\n\
+Author: W1HKJ\n\n\
+Based on Moe Wheatley's PathSim, @ AE4JY\n\n\
+Report problems to %s", PACKAGE_STRING, PACKAGE_BUGREPORT);
+	fl_message("%s", szAbout);
+}

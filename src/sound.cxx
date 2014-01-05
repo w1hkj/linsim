@@ -42,8 +42,12 @@
 #include <time.h>
 
 #include <FL/Fl_File_Chooser.H>
+#include <FL/filename.H>
 
+#include "config.h"
 #include "sound.h"
+#include "main.h"
+#include "linsim_ui.h"
 
 #define	SND_BUF_LEN      65536
 #define SNDFILE_CHANNELS 1
@@ -141,10 +145,22 @@ write_info.sections, write_info.seekable);
 			fprintf(stderr, "sound file update header command failed: %s", sf_strerror(snd_file));
 		tag_file(snd_file, "linsim output");
 
+		string wav_comment, wav_title;
+		size_t pc;
+		wav_title.assign(fl_filename_name(fname_in.c_str()));
+		pc = wav_title.find(".wav");
+		if (pc != string::npos) wav_title.erase(pc);
+
+		wav_comment.assign(txt_simulation->value());
+		pc = wav_comment.find(".wav");
+		if (pc != string::npos) wav_comment.erase(pc);
+
+		sf_set_string (snd_file, SF_STR_SOFTWARE, PACKAGE_STRING);
+		sf_set_string (snd_file, SF_STR_ARTIST, "W1HKJ software");
+		sf_set_string (snd_file, SF_STR_TITLE, wav_title.c_str());
+		sf_set_string (snd_file, SF_STR_COMMENT, wav_comment.c_str() );
+
 		writ_src_data->src_ratio = 1.0 * outfile_samplerate / linsim_samplerate;
-
-//printf("write ratio %f\n", writ_src_data->src_ratio);
-
 		src_set_ratio(writ_src_state, writ_src_data->src_ratio);
 
 	} else {

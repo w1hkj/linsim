@@ -51,6 +51,7 @@ extern Fl_Menu_Item menu_[];
 #define mnu_sr_24000 (menu_+16)
 #define mnu_sr_44100 (menu_+17)
 #define mnu_sr_48000 (menu_+18)
+extern Fl_Menu_Item menu_1[];
 #include <FL/Fl_Check_Browser.H>
 extern Fl_Check_Browser *tbl_batch_simulations;
 extern Fl_Button *btn_cancel_batch;
