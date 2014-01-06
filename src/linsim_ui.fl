@@ -26,7 +26,7 @@ Function {make_linsim_window()} {open
 fname_out.clear();} {}
   Fl_Window linsim_window {
     label {linsim v1.0.0} open
-    xywh {533 48 340 365} type Double visible
+    xywh {783 32 340 365} type Double visible
   } {
     Fl_Menu_Bar {} {open
       xywh {0 0 290 22}
@@ -68,6 +68,11 @@ fname_out.clear();} {}
         MenuItem mnuBatchProcess {
           label Batch
           callback {open_batch_process_dialog();}
+          xywh {0 0 36 21}
+        }
+        MenuItem mnuAWGNseries {
+          label {AWGN series}
+          callback {AWGNseries_dialog();}
           xywh {0 0 36 21}
         }
       }
@@ -135,7 +140,7 @@ txt_input_file->value(fname_in.c_str());}
     Fl_Button btn_select_output {
       label Output
       callback {fname_out = file_name("output.wav");
-txt_output_file->value(fname_out.c_str());} selected
+txt_output_file->value(fname_out.c_str());}
       xywh {4 55 60 24}
     }
     Fl_Output txt_output_file {
@@ -272,7 +277,7 @@ Function {make_batch_selector_dialog()} {open
 } {
   Fl_Window {} {
     label {Batch Processing} open
-    xywh {887 49 340 280} type Double hide resizable
+    xywh {1203 50 340 280} type Double hide resizable
   } {
     Fl_Check_Browser tbl_batch_simulations {
       tooltip {check simulations to batch process} xywh {0 0 340 245} resizable
@@ -304,7 +309,7 @@ Function {make_selector_dialog()} {open
 } {
   Fl_Window {} {
     label {Select Simulation Model} open
-    xywh {539 425 340 270} type Double hide resizable
+    xywh {1179 23 340 270} type Double hide resizable
   } {
     Fl_Button {} {
       label Cancel
@@ -329,6 +334,37 @@ Function {make_selector_dialog()} {open
       label Update
       callback {update_selection(tbl_simulations->value());}
       tooltip {Update hi-lighted simulation} xywh {85 245 70 20} deactivate
+    }
+  }
+} 
+
+Function {make_AWGNseries_dialog()} {open
+} {
+  Fl_Window {} {
+    label {AGWN series} open
+    xywh {784 430 270 120} type Double visible
+  } {
+    Fl_Spinner cntr_Low_dB {
+      label {Lower s/n}
+      tooltip {Lower limit in dB} xywh {84 51 60 25} minimum -20 maximum 40 value 0
+    }
+    Fl_Spinner cntr_High_dB {
+      label {Upper s/n}
+      tooltip {Upper limit in dB} xywh {85 20 60 25} minimum -20 maximum 40 value 20
+    }
+    Fl_Spinner cntr_Step_dB {
+      label {Step size} selected
+      tooltip {Step size in dB} xywh {84 81 60 25} maximum 20
+    }
+    Fl_Return_Button btn_AWGNseries_process {
+      label Process
+      callback {AWGNseries_process();}
+      tooltip {Use checked simulation models} xywh {170 58 84 22}
+    }
+    Fl_Button btn_cancel_AWGNseries {
+      label Cancel
+      callback {cancel_AWGNseries();}
+      tooltip {Cancel - no change in model} xywh {177 18 70 22}
     }
   }
 } 

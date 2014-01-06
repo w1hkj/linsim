@@ -46,6 +46,11 @@ extern void batch_process_items();
 extern void open_batch_process_dialog();
 extern void clear_all_simulation();
 extern void select_all_simulations();
+
+extern void AWGNseries_dialog();
+extern void AWGNseries_process();
+extern void cancel_AWGNseries();
+
 extern void about();
 
 

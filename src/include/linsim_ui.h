@@ -43,14 +43,15 @@ extern Fl_Menu_Item menu_[];
 #define mnu_save_simulation_set_as (menu_+3)
 #define mnuAddSimulation (menu_+7)
 #define mnuBatchProcess (menu_+8)
-#define mnu_sr_as_input (menu_+11)
-#define mnu_sr_8000 (menu_+12)
-#define mnu_sr_11025 (menu_+13)
-#define mnu_sr_16000 (menu_+14)
-#define mnu_sr_22050 (menu_+15)
-#define mnu_sr_24000 (menu_+16)
-#define mnu_sr_44100 (menu_+17)
-#define mnu_sr_48000 (menu_+18)
+#define mnuAWGNseries (menu_+9)
+#define mnu_sr_as_input (menu_+12)
+#define mnu_sr_8000 (menu_+13)
+#define mnu_sr_11025 (menu_+14)
+#define mnu_sr_16000 (menu_+15)
+#define mnu_sr_22050 (menu_+16)
+#define mnu_sr_24000 (menu_+17)
+#define mnu_sr_44100 (menu_+18)
+#define mnu_sr_48000 (menu_+19)
 extern Fl_Menu_Item menu_1[];
 #include <FL/Fl_Check_Browser.H>
 extern Fl_Check_Browser *tbl_batch_simulations;
@@ -66,4 +67,11 @@ extern Fl_Browser *tbl_simulations;
 extern Fl_Button *btn_delete_selection;
 extern Fl_Button *btn_update_selection;
 Fl_Double_Window* make_selector_dialog();
+#include <FL/Fl_Spinner.H>
+extern Fl_Spinner *cntr_Low_dB;
+extern Fl_Spinner *cntr_High_dB;
+extern Fl_Spinner *cntr_Step_dB;
+extern Fl_Return_Button *btn_AWGNseries_process;
+extern Fl_Button *btn_cancel_AWGNseries;
+Fl_Double_Window* make_AWGNseries_dialog();
 #endif

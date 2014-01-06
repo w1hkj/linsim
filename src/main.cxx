@@ -104,6 +104,7 @@ string fname_out;
 
 Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
 Fl_Double_Window *batch_process_selector = (Fl_Double_Window *)0;
+Fl_Double_Window *AWGN_process_dialog = (Fl_Double_Window *)0;
 
 char title[50];
 char progdir[80];
@@ -697,8 +698,67 @@ void save_simulation_set_as()
 		txt_simulations_filename->value(fl_filename_name(simulations.filename().c_str()));
 }
 
-char szAbout[200];
+void AWGNseries_process()
+{
+	int upper = (int)cntr_High_dB->value();
+	int lower = (int)cntr_Low_dB->value();
+	int step  = (int)cntr_Step_dB->value();
+	char simname[100];
+	char szdb[10];
 
+	AWGN_process_dialog->hide();
+
+	string basename = fname_in;
+	if (basename.empty() || lower >= upper)
+		return;
+
+	size_t p = basename.find(".wav");
+	if (p != string::npos) basename.erase(p);
+	basename.append(".");
+
+	lbl_batch->show();
+
+	p0_on->value(0);
+	inp_spread0->value(0);
+	inp_offset0->value(0);
+	p1_on->value(0);
+	inp_delay1->value(0);
+	inp_spread1->value(0);
+	inp_offset1->value(0);
+	p2_on->value(0);
+	inp_delay2->value(0);
+	inp_spread2->value(0);
+	inp_offset2->value(0);
+	inp_AWGN_on->value(1);
+
+	for (int db = lower; db <= upper; db += step) {
+		snprintf(szdb, sizeof(szdb), "%d", db);
+		inp_AWGN_rms->value(szdb);
+		if (szdb[0] == '-') szdb[0] = 'm';
+		snprintf(simname, sizeof(simname), "AWGN_SN_%-s", szdb);
+		txt_simulation->value(simname);
+		fname_out.assign(basename);
+		fname_out.append(simname).append(".wav");
+		txt_output_file->value(fname_out.c_str());
+		run_simulation();
+	}
+
+	lbl_batch->hide();
+	clear_main_dialog();
+}
+
+void cancel_AWGNseries()
+{
+	AWGN_process_dialog->hide();
+}
+
+void AWGNseries_dialog()
+{
+	if (!AWGN_process_dialog) AWGN_process_dialog = make_AWGNseries_dialog();
+	AWGN_process_dialog->show();
+}
+
+char szAbout[200];
 void about()
 {
     snprintf (szAbout, sizeof(szAbout),"\
@@ -709,3 +769,4 @@ Based on Moe Wheatley's PathSim, @ AE4JY\n\n\
 Report problems to %s", PACKAGE_STRING, PACKAGE_BUGREPORT);
 	fl_message("%s", szAbout);
 }
+

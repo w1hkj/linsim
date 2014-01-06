@@ -34,6 +34,10 @@ static void cb_mnuBatchProcess(Fl_Menu_*, void*) {
   open_batch_process_dialog();
 }
 
+static void cb_mnuAWGNseries(Fl_Menu_*, void*) {
+  AWGNseries_dialog();
+}
+
 Fl_Menu_Item menu_[] = {
  {"&File", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {"&Open", 0,  (Fl_Callback*)cb_mnu_open_simulation_set, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -44,6 +48,7 @@ Fl_Menu_Item menu_[] = {
  {"&Simulation", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {"&Add", 0,  (Fl_Callback*)cb_mnuAddSimulation, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
  {"Batch", 0,  (Fl_Callback*)cb_mnuBatchProcess, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"AWGN series", 0,  (Fl_Callback*)cb_mnuAWGNseries, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
  {"&Samplerate", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {"Same as input", 0,  0, 0, 12, FL_NORMAL_LABEL, 0, 14, 0},
@@ -447,6 +452,57 @@ Fl_Double_Window* make_selector_dialog() {
       btn_update_selection->callback((Fl_Callback*)cb_btn_update_selection);
       btn_update_selection->deactivate();
     } // Fl_Button* btn_update_selection
+    o->end();
+  } // Fl_Double_Window* o
+  return w;
+}
+
+Fl_Spinner *cntr_Low_dB=(Fl_Spinner *)0;
+
+Fl_Spinner *cntr_High_dB=(Fl_Spinner *)0;
+
+Fl_Spinner *cntr_Step_dB=(Fl_Spinner *)0;
+
+Fl_Return_Button *btn_AWGNseries_process=(Fl_Return_Button *)0;
+
+static void cb_btn_AWGNseries_process(Fl_Return_Button*, void*) {
+  AWGNseries_process();
+}
+
+Fl_Button *btn_cancel_AWGNseries=(Fl_Button *)0;
+
+static void cb_btn_cancel_AWGNseries(Fl_Button*, void*) {
+  cancel_AWGNseries();
+}
+
+Fl_Double_Window* make_AWGNseries_dialog() {
+  Fl_Double_Window* w;
+  { Fl_Double_Window* o = new Fl_Double_Window(270, 120, "AGWN series");
+    w = o;
+    { cntr_Low_dB = new Fl_Spinner(84, 51, 60, 25, "Lower s/n");
+      cntr_Low_dB->tooltip("Lower limit in dB");
+      cntr_Low_dB->minimum(-20);
+      cntr_Low_dB->maximum(40);
+      cntr_Low_dB->value(0);
+    } // Fl_Spinner* cntr_Low_dB
+    { cntr_High_dB = new Fl_Spinner(85, 20, 60, 25, "Upper s/n");
+      cntr_High_dB->tooltip("Upper limit in dB");
+      cntr_High_dB->minimum(-20);
+      cntr_High_dB->maximum(40);
+      cntr_High_dB->value(20);
+    } // Fl_Spinner* cntr_High_dB
+    { cntr_Step_dB = new Fl_Spinner(84, 81, 60, 25, "Step size");
+      cntr_Step_dB->tooltip("Step size in dB");
+      cntr_Step_dB->maximum(20);
+    } // Fl_Spinner* cntr_Step_dB
+    { btn_AWGNseries_process = new Fl_Return_Button(170, 58, 84, 22, "Process");
+      btn_AWGNseries_process->tooltip("Use checked simulation models");
+      btn_AWGNseries_process->callback((Fl_Callback*)cb_btn_AWGNseries_process);
+    } // Fl_Return_Button* btn_AWGNseries_process
+    { btn_cancel_AWGNseries = new Fl_Button(177, 18, 70, 22, "Cancel");
+      btn_cancel_AWGNseries->tooltip("Cancel - no change in model");
+      btn_cancel_AWGNseries->callback((Fl_Callback*)cb_btn_cancel_AWGNseries);
+    } // Fl_Button* btn_cancel_AWGNseries
     o->end();
   } // Fl_Double_Window* o
   return w;
