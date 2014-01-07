@@ -37,6 +37,7 @@
 #include <FL/Fl_Help_Dialog.H>
 #include <FL/Fl_Menu_Item.H>
 #include <FL/fl_ask.H>
+#include <FL/Fl_File_Chooser.H>
 
 #include "config.h"
 #include "sound.h"
@@ -105,6 +106,7 @@ string fname_out;
 Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
 Fl_Double_Window *batch_process_selector = (Fl_Double_Window *)0;
 Fl_Double_Window *AWGN_process_dialog = (Fl_Double_Window *)0;
+Fl_Double_Window *select_output_dialog = (Fl_Double_Window *)0;
 
 char title[50];
 char progdir[80];
@@ -165,7 +167,12 @@ void visit_URL(void* arg)
 void clean_exit()
 {
 	simulations.save();
+
 	if (simulator_selector) simulator_selector->hide();
+	if (batch_process_selector)  batch_process_selector->hide();
+	if (AWGN_process_dialog) AWGN_process_dialog->hide();
+	if (select_output_dialog) select_output_dialog->hide();
+
 	linsim_window->hide();
 }
 
@@ -200,6 +207,10 @@ int main(int argc, char **argv)
 	Fl::add_handler (handle);
 
 	linsim_window = make_linsim_window();
+	simulator_selector = make_selector_dialog();
+	batch_process_selector = make_batch_selector_dialog();
+	AWGN_process_dialog = make_AWGNseries_dialog();
+	select_output_dialog = make_folder_dialog();
 
 	Fl::visual (FL_DOUBLE|FL_INDEX);
 
@@ -210,10 +221,12 @@ int main(int argc, char **argv)
 #ifdef __WOE32__
 	char dirbuf[FL_PATH_MAX + 1];
 	fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$USERPROFILE/");
+	BaseDir.assign(dirbuf);
 	HomeDir.assign(dirbuf).append("linsim.files/");
 #else
 	char dirbuf[FL_PATH_MAX + 1];
 	fl_filename_expand(dirbuf, sizeof(dirbuf) -1, "$HOME/");
+	BaseDir.assign(dirbuf);
 	HomeDir.assign(dirbuf).append(".linsim/");
 #endif
 
@@ -279,40 +292,36 @@ void update_sim_vals()
 
 void set_output_sr()
 {
-	if (mnu_sr_as_input->value() == true)
+	if (mnu_sr_as_input->value() == 4)
 		outfile_samplerate = inpfile_samplerate;
-	else if (mnu_sr_8000->value() == true)
+	else if (mnu_sr_8000->value() == 4)
 		outfile_samplerate = 8000;
-	else if (mnu_sr_11025->value() == true)
+	else if (mnu_sr_11025->value() == 4)
 		outfile_samplerate = 11025;
-	else if (mnu_sr_16000->value() == true)
+	else if (mnu_sr_16000->value() == 4)
 		outfile_samplerate = 16000;
-	else if (mnu_sr_22050->value() == true)
+	else if (mnu_sr_22050->value() == 4)
 		outfile_samplerate = 22050;
-	else if (mnu_sr_24000->value() == true)
+	else if (mnu_sr_24000->value() == 4)
 		outfile_samplerate = 24000;
-	else if (mnu_sr_44100->value() == true)
+	else if (mnu_sr_44100->value() == 4)
 		outfile_samplerate = 44100;
-	else if (mnu_sr_48000->value() == true)
+	else if (mnu_sr_48000->value() == 4)
 		outfile_samplerate = 48000;
 }
 
-void run_simulation()
+vector<double> inpbuff;
+vector<double> outbuff;
+
+void analyze_input()
 {
+	if (fname_in.empty()) return;
+
 	double buffer[MAX_BUF_SIZE];
-	vector<double> inpbuff;
-	vector<double> outbuff;
 
-	update_sim_vals();
-
-	sim_test.AWGN(sim_vals.AWGN_on);
-	sim_test.SetsnrValue(sim_vals.snrdb);
-	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
-
-	if (fname_in.empty() || fname_out.empty()) return;
 	sim_test.sound_in.open(fname_in, SoundFile::READ);
 
-	size_t fsize = 0, r = 0;
+	size_t r = 0;
 	sim_test.signal_rms = 0.0;
 	progress->label("Analyzing input");
 	progress->redraw_label();
@@ -321,10 +330,12 @@ void run_simulation()
 	sim_test.num_buffs = 0;
 	size_t buffs_read = 0;
 	sim_test.signal_peak = 0;
+
+	inpbuff.clear();
+
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
 		sim_test.measure_rms(buffer, MAX_BUF_SIZE);
-		fsize += r;
 		buffs_read++;
 		for (size_t j = 0; j < MAX_BUF_SIZE; j++)
 			inpbuff.push_back(buffer[j]);
@@ -341,15 +352,9 @@ void run_simulation()
 		sim_test.signal_rms = 2.0 / 65536.0;
 	}
 
-	if (sim_test.snr >= 1.0) {
-		sim_test.signal_gain = RMS_MAXAMPLITUDE / sim_test.signal_rms;
-		sim_test.noise_rms = (sim_test.signal_gain * sim_test.signal_rms) / sim_test.snr;
-	} else {
-		sim_test.signal_gain = (RMS_MAXAMPLITUDE * sim_test.snr) / sim_test.signal_rms;
-		sim_test.noise_rms = RMS_MAXAMPLITUDE;
-	}
+	sim_test.sound_in.close();
 /*
-printf("Input file size %d\n", static_cast<unsigned int>(fsize));
+printf("Input file size %d\n", (int)inpbuff.size());
 printf("Read %d buffers; processed %d buffers\n", buffs_read, sim_test.num_buffs);
 printf("Target s/n %f\n", sim_test.snr);
 printf("signal RMS %f\n", sim_test.signal_rms);
@@ -357,19 +362,42 @@ printf("signal gain %f, noise RMS %f\n", sim_test.signal_gain, sim_test.noise_rm
 printf("signal peak %f, signal peak out %f\n", sim_test.signal_peak,
 	sim_test.signal_peak * sim_test.signal_gain);
 */
-//		sim_test.sound_in.rewind();
+}
 
-	sim_test.sound_in.close();
+void generate_output()
+{
+	double buffer[MAX_BUF_SIZE];
+
+	if (fname_out.empty()) return;
+
+	update_sim_vals();
+
+	sim_test.AWGN(sim_vals.AWGN_on);
+	sim_test.SetsnrValue(sim_vals.snrdb);
+	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
+
+	set_output_sr();
+
+	if (sim_test.snr >= 1.0) {
+		sim_test.signal_gain = RMS_MAXAMPLITUDE / sim_test.signal_rms;
+		sim_test.noise_rms = (sim_test.signal_gain * sim_test.signal_rms) / sim_test.snr;
+	} else {
+		sim_test.signal_gain = (RMS_MAXAMPLITUDE * sim_test.snr) / sim_test.signal_rms;
+		sim_test.noise_rms = RMS_MAXAMPLITUDE;
+	}
 
 	if (sim_test.sound_out.open(fname_out, SoundFile::WRITE) != 0) {
 		printf("Could not open sound file for WRITE.\n");
 		exit(0);
 	}
+
 	progress->value(0);
 	progress->minimum(0);
 	progress->maximum(inpbuff.size() * 1.0);
 	progress->label("Running Simulation");
 	progress->redraw_label();
+
+	outbuff.clear();
 
 	for (size_t pq = 0; pq < inpbuff.size(); pq += MAX_BUF_SIZE) {
 		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
@@ -401,8 +429,6 @@ printf("signal peak %f, signal peak out %f\n", sim_test.signal_peak,
 	for (size_t n = 0; n < outbuff.size(); n++)
 		outbuff[n] *= (0.707 / maxout);
 
-	set_output_sr();
-
 	for (size_t n = 0; n < outbuff.size(); n += MAX_BUF_SIZE) {
 		sim_test.sound_out.write(&outbuff[n], MAX_BUF_SIZE);
 		if ((n / MAX_BUF_SIZE) % 4 == 0) {
@@ -411,14 +437,18 @@ printf("signal peak %f, signal peak out %f\n", sim_test.signal_peak,
 			Fl::flush();
 		}
 	}
+	sim_test.sound_out.close();
 
-	progress->value(fsize * 1.0);
 	progress->label("");
 	progress->redraw_label();
-	sim_test.sound_in.close();
-	sim_test.sound_out.close();
 	progress->value(0);
 	progress->redraw();
+}
+
+void run_simulation()
+{
+	analyze_input();
+	generate_output();
 }
 
 void populate_simulation_selector()
@@ -574,37 +604,6 @@ void cancel_batch_process()
 	batch_process_selector->hide();
 }
 
-void process_batch_item(int n)
-{
-	if (!n) return;
-	n--;
-
-	txt_simulation->value(simulations.dbrecs[n].title.c_str());
-
-	bool b = simulations.dbrecs[n].p0 == "1";
-	p0_on->value(b);
-	inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
-	inp_offset0->value(simulations.dbrecs[n].offset_0.c_str());
-
-	b = simulations.dbrecs[n].p1 == "1";
-	p1_on->value(b);
-	inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
-	inp_spread1->value(simulations.dbrecs[n].spread_1.c_str());
-	inp_offset1->value(simulations.dbrecs[n].offset_1.c_str());
-
-	b = simulations.dbrecs[n].p2 == "1";
-	p2_on->value(b);
-	inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
-	inp_spread2->value(simulations.dbrecs[n].spread_2.c_str());
-	inp_offset2->value(simulations.dbrecs[n].offset_2.c_str());
-
-	b = simulations.dbrecs[n].awgn == "1";
-	inp_AWGN_on->value(b);
-	inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
-
-	run_simulation();
-}
-
 void clear_main_dialog()
 {
 	txt_simulation->value("");
@@ -632,29 +631,65 @@ void clear_main_dialog()
 void batch_process_items()
 {
 	batch_process_selector->hide();
-	string basename = fname_in;
+	string basename;
 	string simname;
-	if (basename.empty()) {
-		printf("enter input file name");
-		return;
+
+	if (btn_same_as_input_file->value())
+		basename = fname_in;
+	else {
+		string name = fl_filename_name(fname_in.c_str());
+		basename = finp_output_wav_folder->value();
+		basename.append(name);
 	}
+	if (basename.empty())
+		return;
+
 	size_t p = basename.find(".wav");
 	if (p != string::npos) basename.erase(p);
 	basename.append(".");
 
 	lbl_batch->show();
-	for (int n = 1; n <= tbl_batch_simulations->nitems(); n++) {
-		if (tbl_batch_simulations->checked(n)) {
+	analyze_input();
+
+	bool b;
+	for (int n = 0; n < tbl_batch_simulations->nitems(); n++) {
+		if (tbl_batch_simulations->checked(n+1)) {
 			fname_out.assign(basename);
-			simname.assign(tbl_batch_simulations->text(n));
+			simname.assign(tbl_batch_simulations->text(n+1));
 			while ((p = simname.find("(")) != string::npos) simname.erase(p,1);
 			while ((p = simname.find(")")) != string::npos) simname.erase(p,1);
 			while ((p = simname.find("/")) != string::npos) simname[p] = '_';
 			while ((p = simname.find("-")) != string::npos) simname[p] = '_';
 			while ((p = simname.find(" ")) != string::npos) simname[p] = '_';
+
 			fname_out.append(simname).append(".wav");
 			txt_output_file->value(fname_out.c_str());
-			process_batch_item(n);
+
+			txt_simulation->value(simulations.dbrecs[n].title.c_str());
+
+			b = simulations.dbrecs[n].p0 == "1";
+			p0_on->value(b);
+			inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
+			inp_offset0->value(simulations.dbrecs[n].offset_0.c_str());
+
+			b = simulations.dbrecs[n].p1 == "1";
+			p1_on->value(b);
+			inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
+			inp_spread1->value(simulations.dbrecs[n].spread_1.c_str());
+			inp_offset1->value(simulations.dbrecs[n].offset_1.c_str());
+
+			b = simulations.dbrecs[n].p2 == "1";
+			p2_on->value(b);
+			inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
+			inp_spread2->value(simulations.dbrecs[n].spread_2.c_str());
+			inp_offset2->value(simulations.dbrecs[n].offset_2.c_str());
+
+			b = simulations.dbrecs[n].awgn == "1";
+			inp_AWGN_on->value(b);
+			inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
+
+//run_simulation();
+			generate_output();
 		}
 	}
 	lbl_batch->hide();
@@ -663,7 +698,7 @@ void batch_process_items()
 
 void open_batch_process_dialog()
 {
-	if (!batch_process_selector) batch_process_selector = make_batch_selector_dialog();
+	if (!batch_process_selector) make_batch_selector_dialog();
 	if (simulations.numrecs() == 0) return;
 	populate_batch_selector();
 	batch_process_selector->show();
@@ -671,9 +706,9 @@ void open_batch_process_dialog()
 
 void load_simulation_set()
 {
-	char *picked = fl_file_chooser ( 
+	char *picked = fl_file_chooser (
 						"Load Simulation Set",
-						"*.csv", 
+						"*.csv",
 						simulations.filename().c_str(), 1);
 	if (!picked) return;
 	simulations.filename(picked);
@@ -688,9 +723,9 @@ void save_simulation_set()
 
 void save_simulation_set_as()
 {
-	char *picked = fl_file_chooser ( 
+	char *picked = fl_file_chooser (
 						"Save Simulation Set",
-						"*.csv", 
+						"*.csv",
 						simulations.filename().c_str(), 1);
 	if (!picked) return;
 	simulations.filename(picked);
@@ -708,8 +743,15 @@ void AWGNseries_process()
 
 	AWGN_process_dialog->hide();
 
-	string basename = fname_in;
-	if (basename.empty() || lower >= upper)
+	string basename;
+	if (btn_same_as_input_file->value())
+		basename = fname_in;
+	else {
+		string name = fl_filename_name(fname_in.c_str());
+		basename = finp_output_wav_folder->value();
+		basename.append(name);
+	}
+	if (basename.empty())
 		return;
 
 	size_t p = basename.find(".wav");
@@ -731,6 +773,8 @@ void AWGNseries_process()
 	inp_offset2->value(0);
 	inp_AWGN_on->value(1);
 
+	analyze_input();
+
 	for (int db = lower; db <= upper; db += step) {
 		snprintf(szdb, sizeof(szdb), "%d", db);
 		inp_AWGN_rms->value(szdb);
@@ -740,7 +784,7 @@ void AWGNseries_process()
 		fname_out.assign(basename);
 		fname_out.append(simname).append(".wav");
 		txt_output_file->value(fname_out.c_str());
-		run_simulation();
+		generate_output();
 	}
 
 	lbl_batch->hide();
@@ -756,6 +800,36 @@ void AWGNseries_dialog()
 {
 	if (!AWGN_process_dialog) AWGN_process_dialog = make_AWGNseries_dialog();
 	AWGN_process_dialog->show();
+}
+
+void output_folder_select()
+{
+	string dir = fname_in;
+	size_t p = dir.find(fl_filename_name(dir.c_str()));
+	if (p != string::npos) dir.erase(p);
+
+	char *szdir = fl_dir_chooser ( "Output wav file folder", dir.c_str(), 0 );
+
+	if (szdir) {
+		finp_output_wav_folder->value(szdir);
+		finp_output_wav_folder->redraw();
+	}
+}
+
+void close_output_dialog()
+{
+	select_output_dialog->hide();
+}
+
+void choose_batch_folder()
+{
+	if (!select_output_dialog) select_output_dialog = make_folder_dialog();
+	string dir = fname_in;
+	size_t p = dir.find(fl_filename_name(dir.c_str()));
+	if (p != string::npos) dir.erase(p);
+	finp_output_wav_folder->value(dir.c_str());
+	finp_output_wav_folder->redraw();
+	select_output_dialog->show();
 }
 
 char szAbout[200];

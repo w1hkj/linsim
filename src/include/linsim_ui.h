@@ -44,14 +44,15 @@ extern Fl_Menu_Item menu_[];
 #define mnuAddSimulation (menu_+7)
 #define mnuBatchProcess (menu_+8)
 #define mnuAWGNseries (menu_+9)
-#define mnu_sr_as_input (menu_+12)
-#define mnu_sr_8000 (menu_+13)
-#define mnu_sr_11025 (menu_+14)
-#define mnu_sr_16000 (menu_+15)
-#define mnu_sr_22050 (menu_+16)
-#define mnu_sr_24000 (menu_+17)
-#define mnu_sr_44100 (menu_+18)
-#define mnu_sr_48000 (menu_+19)
+#define mnu_choose_folder (menu_+10)
+#define mnu_sr_as_input (menu_+13)
+#define mnu_sr_8000 (menu_+14)
+#define mnu_sr_11025 (menu_+15)
+#define mnu_sr_16000 (menu_+16)
+#define mnu_sr_22050 (menu_+17)
+#define mnu_sr_24000 (menu_+18)
+#define mnu_sr_44100 (menu_+19)
+#define mnu_sr_48000 (menu_+20)
 extern Fl_Menu_Item menu_1[];
 #include <FL/Fl_Check_Browser.H>
 extern Fl_Check_Browser *tbl_batch_simulations;
@@ -74,4 +75,8 @@ extern Fl_Spinner *cntr_Step_dB;
 extern Fl_Return_Button *btn_AWGNseries_process;
 extern Fl_Button *btn_cancel_AWGNseries;
 Fl_Double_Window* make_AWGNseries_dialog();
+#include <FL/Fl_File_Input.H>
+extern Fl_File_Input *finp_output_wav_folder;
+extern Fl_Check_Button *btn_same_as_input_file;
+Fl_Double_Window* make_folder_dialog();
 #endif

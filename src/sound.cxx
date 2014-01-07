@@ -67,6 +67,7 @@ SF_INFO wav_file_info;
 
 std::string file_name(std::string def_fname)
 {
+	def_fname.insert(0, BaseDir);
 	char *picked = fl_file_chooser	( "Audio File", "*.wav", def_fname.c_str(), 1);
 	if (!picked) return "";
 	return picked;
@@ -126,16 +127,10 @@ int SoundFile::open(std::string _fname, int _mode)
 		write_info.sections = 0;
 		write_info.seekable = 0;
 /*
-printf("WRITE\n\
-frames : %d\n\
-samplerate : %d\n\
-channesl : %d\n\
-format: %d\n\
-sections: %d\n\
-seekable: %d\n", 
-static_cast<unsigned int>(write_info.frames),
-write_info.samplerate, write_info.channels, write_info.format,
-write_info.sections, write_info.seekable);
+printf("WRITE\nframes : %d\nsamplerate : %d\nchannels : %d\nformat: %d\nsections: %d\nseekable: %d\n", 
+	static_cast<unsigned int>(write_info.frames),
+	write_info.samplerate, write_info.channels, write_info.format,
+	write_info.sections, write_info.seekable);
 */
 		if ((snd_file = sf_open(fname.c_str(), SFM_WRITE, &write_info)) == NULL) {
 			fprintf(stderr, "Could not write %s:%s", fname.c_str(), sf_strerror(NULL) );
@@ -182,20 +177,15 @@ write_info.sections, write_info.seekable);
 			return -4;
 		}
 /*
-printf("READ\n\
-frames : %d\n\
-samplerate : %d\n\
-channesl : %d\n\
-format: %d\n\
-sections: %d\n\
-seekable: %d\n", 
+printf("READ\nframes : %d\nsamplerate : %d\nchannels : %d\nformat: %d\nsections: %d\nseekable: %d\n", 
 static_cast<unsigned int>(read_info.frames),
 read_info.samplerate, read_info.channels, read_info.format,
 read_info.sections, read_info.seekable);
 */
-wav_file_info = read_info;
+		wav_file_info = read_info;
 
 		inpfile_samplerate = read_info.samplerate;
+
 		read_src_data->src_ratio = 1.0 * linsim_samplerate / inpfile_samplerate;
 		src_set_ratio(read_src_state, read_src_data->src_ratio);
 		memset(src_inp_buffer, 0, 1024 * sizeof(float));

@@ -16,6 +16,7 @@
 #include "sim.h"
 #include "csv.h"
 
+extern std::string BaseDir;
 extern std::string HomeDir;
 extern std::string fname_in;
 extern std::string fname_out;
@@ -50,6 +51,10 @@ extern void select_all_simulations();
 extern void AWGNseries_dialog();
 extern void AWGNseries_process();
 extern void cancel_AWGNseries();
+
+extern void choose_batch_folder();
+extern void output_folder_select();
+extern void close_output_dialog();
 
 extern void about();
 

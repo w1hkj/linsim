@@ -25,7 +25,7 @@ Function {make_linsim_window()} {open
   code {fname_in.clear();
 fname_out.clear();} {}
   Fl_Window linsim_window {
-    label {linsim v1.0.0} open
+    label {linsim v1.0.0}
     xywh {783 32 340 365} type Double visible
   } {
     Fl_Menu_Bar {} {open
@@ -63,7 +63,7 @@ fname_out.clear();} {}
         MenuItem mnuAddSimulation {
           label {&Add}
           callback {add_simulation();}
-          xywh {0 0 36 21} divider
+          tooltip {Add current simulation to list} xywh {0 0 36 21} divider
         }
         MenuItem mnuBatchProcess {
           label Batch
@@ -73,6 +73,11 @@ fname_out.clear();} {}
         MenuItem mnuAWGNseries {
           label {AWGN series}
           callback {AWGNseries_dialog();}
+          xywh {0 0 36 21} divider
+        }
+        MenuItem mnu_choose_folder {
+          label {Choose ouput folder}
+          callback {choose_batch_folder();}
           xywh {0 0 36 21}
         }
       }
@@ -353,7 +358,7 @@ Function {make_AWGNseries_dialog()} {open
       tooltip {Upper limit in dB} xywh {85 20 60 25} minimum -20 maximum 40 value 20
     }
     Fl_Spinner cntr_Step_dB {
-      label {Step size} selected
+      label {Step size}
       tooltip {Step size in dB} xywh {84 81 60 25} maximum 20
     }
     Fl_Return_Button btn_AWGNseries_process {
@@ -365,6 +370,34 @@ Function {make_AWGNseries_dialog()} {open
       label Cancel
       callback {cancel_AWGNseries();}
       tooltip {Cancel - no change in model} xywh {177 18 70 22}
+    }
+  }
+} 
+
+Function {make_folder_dialog()} {open
+} {
+  Fl_Window {} {
+    label {Output file location} open
+    xywh {1088 430 350 105} type Double visible
+  } {
+    Fl_File_Input finp_output_wav_folder {
+      label {Store output wav files in:} selected
+      xywh {4 22 342 35} align 5
+    }
+    Fl_Button {} {
+      label {Select 
+Folder}
+      callback {output_folder_select();}
+      xywh {94 62 70 36}
+    }
+    Fl_Check_Button btn_same_as_input_file {
+      label {Same as input file}
+      xywh {180 68 164 24} down_box DOWN_BOX value 1
+    }
+    Fl_Button {} {
+      label Close
+      callback {close_output_dialog();}
+      xywh {10 67 70 26}
     }
   }
 } 

@@ -38,6 +38,10 @@ static void cb_mnuAWGNseries(Fl_Menu_*, void*) {
   AWGNseries_dialog();
 }
 
+static void cb_mnu_choose_folder(Fl_Menu_*, void*) {
+  choose_batch_folder();
+}
+
 Fl_Menu_Item menu_[] = {
  {"&File", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {"&Open", 0,  (Fl_Callback*)cb_mnu_open_simulation_set, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -48,7 +52,8 @@ Fl_Menu_Item menu_[] = {
  {"&Simulation", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {"&Add", 0,  (Fl_Callback*)cb_mnuAddSimulation, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
  {"Batch", 0,  (Fl_Callback*)cb_mnuBatchProcess, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"AWGN series", 0,  (Fl_Callback*)cb_mnuAWGNseries, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+ {"AWGN series", 0,  (Fl_Callback*)cb_mnuAWGNseries, 0, 128, FL_NORMAL_LABEL, 0, 14, 0},
+ {"Choose ouput folder", 0,  (Fl_Callback*)cb_mnu_choose_folder, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
  {"&Samplerate", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
  {"Same as input", 0,  0, 0, 12, FL_NORMAL_LABEL, 0, 14, 0},
@@ -503,6 +508,40 @@ Fl_Double_Window* make_AWGNseries_dialog() {
       btn_cancel_AWGNseries->tooltip("Cancel - no change in model");
       btn_cancel_AWGNseries->callback((Fl_Callback*)cb_btn_cancel_AWGNseries);
     } // Fl_Button* btn_cancel_AWGNseries
+    o->end();
+  } // Fl_Double_Window* o
+  return w;
+}
+
+Fl_File_Input *finp_output_wav_folder=(Fl_File_Input *)0;
+
+static void cb_Select(Fl_Button*, void*) {
+  output_folder_select();
+}
+
+Fl_Check_Button *btn_same_as_input_file=(Fl_Check_Button *)0;
+
+static void cb_Close(Fl_Button*, void*) {
+  close_output_dialog();
+}
+
+Fl_Double_Window* make_folder_dialog() {
+  Fl_Double_Window* w;
+  { Fl_Double_Window* o = new Fl_Double_Window(350, 105, "Output file location");
+    w = o;
+    { finp_output_wav_folder = new Fl_File_Input(4, 22, 342, 35, "Store output wav files in:");
+      finp_output_wav_folder->align(Fl_Align(FL_ALIGN_TOP_LEFT));
+    } // Fl_File_Input* finp_output_wav_folder
+    { Fl_Button* o = new Fl_Button(94, 62, 70, 36, "Select \nFolder");
+      o->callback((Fl_Callback*)cb_Select);
+    } // Fl_Button* o
+    { btn_same_as_input_file = new Fl_Check_Button(180, 68, 164, 24, "Same as input file");
+      btn_same_as_input_file->down_box(FL_DOWN_BOX);
+      btn_same_as_input_file->value(1);
+    } // Fl_Check_Button* btn_same_as_input_file
+    { Fl_Button* o = new Fl_Button(10, 67, 70, 26, "Close");
+      o->callback((Fl_Callback*)cb_Close);
+    } // Fl_Button* o
     o->end();
   } // Fl_Double_Window* o
   return w;
