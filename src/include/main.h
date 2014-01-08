@@ -57,5 +57,7 @@ extern void output_folder_select();
 extern void close_output_dialog();
 
 extern void about();
+extern void guideURL();
+
 
 

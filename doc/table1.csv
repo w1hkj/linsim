@@ -1,0 +1,18 @@
+"AWGN S/N",1,10,0,0,0,0,0,0,0,0,0,0,0
+"CCIR 520-2 (Doppler Fading)",0,0,1,0.2,10,1,0.5,0.2,5,0,0,0,0
+"CCIR 520-2 (Flutter Fading)",0,0,1,10,0,1,0.5,10,0,0,0,0,0
+"CCIR 520-2 (Good Conditions)",0,0,1,0.1,0,1,0.5,0.1,0,0,0,0,0
+"CCIR-520-2 (Moderate Conditions)",0,0,1,0.5,0,1,1,0.5,0,0,0,0,0
+"CCIR-520-2 (Poor Conditions)",0,0,1,0.5,0,1,2,0.5,0,0,0,0,0
+"Direct Path",0,10,0,0,0,0,0,0,0,0,0,0,0
+"Frequency Shifter",0,0,1,0,500,0,0,0,0,0,0,0,0
+"High-Latitude Disturbed",0,0,1,30,0,1,7,30,0,0,0,0,0
+"High-Latitude Moderate",0,0,1,10,0,1,3,10,0,0,0,0,0
+"High-Latitude Quiet",0,0,1,0.5,0,1,1,0.5,0,0,0,0,0
+"Low-Latitude Disturbed",0,0,1,10,0,1,6,10,0,0,0,0,0
+"Low-Latitude Moderate",0,0,1,1.5,0,1,2,1.5,0,0,0,0,0
+"Low-Latitude Quiet",0,0,1,0.5,0,1,0.5,0.5,0,0,0,0,0
+"Mid-Latitude Disturbed",0,0,1,1,0,1,2,1,0,0,0,0,0
+"Mid-Latitude Disturbed NVIS",0,0,1,1,0,1,7,1,0,0,0,0,0
+"Mid-Latitude Moderate",0,0,1,0.5,0,1,1,0.5,0,0,0,0,0
+"Mid-Latitude Quiet",0,0,1,0.5,0,1,0.5,0.5,0,0,0,0,0

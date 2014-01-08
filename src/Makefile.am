@@ -123,6 +123,7 @@ linsim_SOURCES += \
 EXTRA_DIST = \
 	linsim_ui.fl \
 	linsim_icon.cxx \
+	guide.cxx \
 	linsim.rc \
 	include/linsimrc.h
 
@@ -140,5 +141,10 @@ EXTRA_DIST += \
 	$(srcdir)/../data/mac/Info.plist.in \
 	$(srcdir)/../data/mac/linsim.icns \
 	$(srcdir)/../scripts/mkappbundle.sh \
+	$(srcdir)/../doc/asciidoc.conf \
+	$(srcdir)/../doc/guide.conf \
+	$(srcdir)/../doc/guide.html \
+	$(srcdir)/../doc/guide.txt \
+	$(srcdir)/../doc/table1.csv \
 	$(linsim_WIN32_SRC) \
 	$(linsim_FL_SRC)

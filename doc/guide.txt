@@ -1,0 +1,210 @@
+Guide to linsim
+===============
+
+// Uncomment the section below to enable the hand written TOC and avoid some
+// javascript security warnings with brain-dead browsers.  Remember to update
+// when changing the sections.
+////////////////////////////////////////////////////////////////////////////////
+.Table of Contents
+<<ref-general, 1. General>>
+
+<<ref-models, 2. Simulation Models>>
+
+<<ref-folders-files, 3. Folders & Files>>
+
+<<ref-operating, 4. Operating program>>
+
+<<ref-batch, 5. Batch Processing>>
+
+<<ref-series, 6. AWGN Series Processing>>
+
+<<ref-credits, Credits>>
+////////////////////////////////////////////////////////////////////////////////
+
+
+:revision: 1.0.1
+// Aliases
+//:docsurl: http://www.w1hkj.com/downloads/
+//:docs: {docsurl}linsim.pdf
+//:home: http://www.w1hkj.com/Fldigi.html
+:secret_rabbit: http://www.mega-nerd.com/SRC/
+:pathsim: http://www.moetronix.com/ae4jy/files/pathsimtech100.pdf
+
+********************************************************************************
+Of necessity, this Guide contains only as much as you need to know to get started.
+********************************************************************************
+
+
+[[ref-general]]
+== What is Linsim? ==
+
+linsim is a computer program intended as a tool for Amateur Radio Digital Mode 
+evaluation under varying HF propogation conditions.  
+
+linsim is available for multiple computer operating systems;
+FreeBSD(TM); Linux(TM), OS X(TM) and Windows(TM).
+
+=== What is a Simulation Model? ===
+
+.Watterson Ionospheric Channel Model
+
+Radio propagation via the earth's ionosphere contain reflections from 3 general effects:
+
+* Density variations versus altitude in the ionosphere
+
+* Magnetic-ionic effects that cause polarization-dependent paths
+
+* Non-uniformity of the ionospheric layers
+
+The Watterson HF channel model has been used for some time for simulating the propagation of radio waves reflecting off of the ionosphere by simulating both amplitude and phase distortion in multiple propagation paths each with a specified fixed delay.
+
+For a much more detailed description, one is referred to an article in the May/June 2000 issue of QEX by Johan Forrer describing the details of such a model. Another reference can be found in "Wireless Digital Communications:
+Design and Theory" by Tom McDermott.
+
+The mathematics associated with the various signal processing paths are identical to PathSim.  The reader is refered to Moe Wheatley's excellent PathSim technical document for details, {pathsim}.
+
+
+=== General description ===
+Linsim is designed to read and then add path simulation to any monophonic wav file recorded at any sampling rate.  It works particularly well with files that were created using fldigi's audio capture and audio generate functions.  The entire wav file will be saved to computer memory and then duplicated during the signal processing.  The user should try to keep the length of the wav file at 20 Mg or less, but the author has tested some 200 Mg files on both Linux and Windows-8 without causing a program fault.  These files were original VOAR broadcasts of about 30 minutes duration.  The objective of this type of simulation is to finally measure the character error rate (CER) and bit error rate (BER) of a specific modem type and decoder design.  For most modems a sequence of 1000 characters provides a sufficient level of confidence in the CER measurment.
+
+Simulations include path delay, doppler, frequency shift and band limited Gaussian white noise.  All simulations are constrained to a 3000 Hz bandwidth.  The input signal is filtered by a FIR bandpass filter (400 - 3400 Hz).  
+
+[NOTE]
+================================================================================
+Your input signal should not extend beyond these limits.
+================================================================================
+
+[[ref-folders-files]]
+== Simulation Specification Files ==
+=== Folder location ===
+The first time it is executed linsim will create a folder in which to store it's simulation specification files.  The folder location depends on the user's operating system:
+
+XP : C:\Documents and Settings\<user>\linsim.files
+
+Vista / Win7 / Win8 : C:\Users\<user>\linsim.files
+
+Linux : /home/<user>/.linsim
+
+OS X : /users/<user>/.linsim
+
+Linux and OS X users might want to create a link to that folder
+
+$ cd
+$ ln -s linsim.files .linsim
+
+== Simulation Files ==
+Linsim can manage, open and save any number of simulation sets.  Each set of simulations are saved in the same comma-separated-value (csv) file.  The files are compatible with any spreadsheet program such as Excel, Open Office, or Gnumeric.
+
+=== Simulation File Format ===
+Simulation files are spreadsheet files saved in a comma-separated-value format.
+A default set of simulations are created for you when the program is executed
+for the first time.  The default file contents are
+
+[format="csv",cols="^1,14*2",options="header"]
+|============================================================================================
+TITLE,AWGN,S/N,P1,SPREAD_1,OFFSET_1,P2,DELAY_2,SPREAD_2,OFFSET_2,P3,DELAY_3,SPREAD_3,OFFSET_3
+include::table1.csv[]
+|============================================================================================
+
+
+[[ref-operating]]
+== Menu functions ==
+
+.File
+* Open    - open an existing simulation set csv file
+** the name of the simulation file in use will be displayed in the control labeled "Models:"
+* Save    - save the current simulation set csv file
+* Save As - save the current simulation set, specifying a new file path-name
+* Exit    - exit the program, saving current simulation set
+
+.Simulation
+* Add         - add the current simulation specifications to the current set
+* Batch       - open the batch processing dialog
+** select sequence of simulations to be run as a set
+* AWGN series - open the AWGN series processing dialog
+** select lower, upper, step for a series of simulation runs
+* Choose output folder
+** open folder (directory) selection folder
+** select target folder (must be existing)
+** or output same as input folder (default)
+
+.Samplerate - select from one of several menu choices
+* Same as input (default)
+* 8000
+* 11025
+* 16000
+* 22050
+* 24000
+* 44100
+* 48000
+
+.Help
+* About - Version, authors, etc.
+* Guide - open this html document in default html browser
+
+
+== Main Dialog Controls ==
+
+* Input button - select the input file.
+** selection will be shown in the output control to the right of the button.
+
+* Output button - select the output file.
+** selection will be shown in the output control to the right of the button.
+
+* Simul' button - open the simulation select dialog
+** The select dialog contains 5 controls
+*** simulation browser - select the desired simulation with left mouse button
+*** Select button - load the constraints for the highlighted simulation to the main dialog
+**** Once selected the next two controls become accessible
+**** Make any desired changes to the constraint values on the main dialog
+*** Update button - update the highlighted simulation with the main dialog constraints
+*** Delete button - delete the current simulation from the list
+*** Cancel button - close the select dialog
+
+
+[NOTE]
+.Adding a new simulation
+================================================================================
+You may also modify the constraints, change the simulation name accordingly, and then use the Simulation, Add menu item to add the new simulation to the displayed list.
+================================================================================
+
+== Path specifications ==
+There are 3 possible path specifications that can be applied concurrently to the input audio stream.  Path 1 is the ground wave or direct signal path and is always present in the output signal.  Path 2 and 3 are delayed signal paths, usually sky wave path simulation.  Paths 2 and 3 can be either selected or not by the check box associated with each path.
+
+* Path 1 - undelayed, straight line, or ground wave path; always present
+** Spread - 2 sigma Doppler spread in Hz
+** Offset - Doppler shift in Hz
+* Path 2 - reflected signal path, usually skywave
+** Delay - path delay from ground wave path, in milliseconds
+** Spread - 2 sigma Doppler spread in Hz
+** Offset - Doppler shift in Hz
+* Path 3 - reflected signal path, usually skywave
+** Delay - path delay from ground wave path, in milliseconds
+** Spread - 2 sigma Doppler spread in Hz
+** Offset - Doppler shift in Hz
+
+== AWGN specifications ==
+Gaussian noise can be added to the signal.  The S/N value is in dB with respect to the input audio stream; ie: 6 dB results in an output audio stream with a +6 dB signal to noise ratio.
+
+[[ref-batch]]
+== Batch Processing ==
+The batch processing dialog is similar to the select dialog in that it contains a list browser and 4 buttons.  The list browser is different in that each line can be selected by toggling it's associated check box.
+
+** Clear button   - clear all list check boxes
+** All button     - set all list check boxes
+** Process button - process each of the checked list items
+*** as each item is processed a simulation will be performed and the output audio stream written to a file whose name is a composite of the input audio stream file-name and the current simulation name.  The main dialog constraints will display the simulation values as each one is processed.  White space and directory/folder designation characters will be change to an underscore for the final file-name.  The file will be either stored in the same folder as the input wav file or in the designated output file folder.
+** Cancel         - close the batch process dialog
+
+[[ref-series]]
+== AWGN Series Processing ==
+It's quite common to want a series of test files at varying signal to noise ratios.  The menu item "Simulation | AWGN series" gives access to a simple dialog that allows the user to specify the lower, upper and step size for a sequence of AWGN tests.  Set these values and then press the "Process" button to generate a unique output wav file for each of requested series.  The output file-name will be a composite of the input file name and the AWGN value of interest.  Output folder designation is the same as for the batch processing.
+
+[[ref-credits]]
+== Credits ==
+
+Copyright (C) 2014 David Freese, +W1HKJ+.
+
+Based on AE4JY, Moe Wheatley's PathSim.
+
+License GPLv3+: http://www.gnu.org/licenses/gpl.html[GNU GPL version 3 or later].

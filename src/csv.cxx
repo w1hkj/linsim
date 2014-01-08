@@ -94,8 +94,9 @@ void csvdb::load_defaults()
 
 	for (size_t n = 0; n < sizeof(defaults) / sizeof(csvRecord); n++)
 		dbrecs.push_back(defaults[n]);
-
-	filename(HomeDir.append("linsim.simulations.csv"));
+	string csv_fname = HomeDir;
+	csv_fname.append("linsim.simulations.csv");
+	filename(csv_fname);
 
 }
 

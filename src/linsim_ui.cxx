@@ -68,12 +68,17 @@ Fl_Menu_Item menu_[] = {
  {0,0,0,0,0,0,0,0,0}
 };
 
+static void cb_Quick(Fl_Menu_*, void*) {
+  guideURL();
+}
+
 static void cb_About(Fl_Menu_*, void*) {
   about();
 }
 
 Fl_Menu_Item menu_1[] = {
  {"&Help", 0,  0, 0, 64, FL_NORMAL_LABEL, 0, 14, 0},
+ {"&Quick Guide", 0,  (Fl_Callback*)cb_Quick, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {"&About", 0,  (Fl_Callback*)cb_About, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
  {0,0,0,0,0,0,0,0,0},
  {0,0,0,0,0,0,0,0,0}

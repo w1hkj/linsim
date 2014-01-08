@@ -25,7 +25,7 @@ Function {make_linsim_window()} {open
   code {fname_in.clear();
 fname_out.clear();} {}
   Fl_Window linsim_window {
-    label {linsim v1.0.0}
+    label {linsim v1.0.0} open
     xywh {783 32 340 365} type Double visible
   } {
     Fl_Menu_Bar {} {open
@@ -126,6 +126,11 @@ fname_out.clear();} {}
         label {&Help} open
         xywh {0 0 70 21}
       } {
+        MenuItem {} {
+          label {&Quick Guide}
+          callback {guideURL();} selected
+          xywh {0 0 36 21}
+        }
         MenuItem {} {
           label {&About}
           callback {about();}
@@ -347,7 +352,7 @@ Function {make_AWGNseries_dialog()} {open
 } {
   Fl_Window {} {
     label {AGWN series} open
-    xywh {784 430 270 120} type Double visible
+    xywh {784 430 270 120} type Double hide
   } {
     Fl_Spinner cntr_Low_dB {
       label {Lower s/n}
@@ -378,10 +383,10 @@ Function {make_folder_dialog()} {open
 } {
   Fl_Window {} {
     label {Output file location} open
-    xywh {1088 430 350 105} type Double visible
+    xywh {1088 430 350 105} type Double hide
   } {
     Fl_File_Input finp_output_wav_folder {
-      label {Store output wav files in:} selected
+      label {Store output wav files in:}
       xywh {4 22 342 35} align 5
     }
     Fl_Button {} {

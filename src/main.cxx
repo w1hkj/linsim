@@ -247,7 +247,9 @@ int main(int argc, char **argv)
 	linsim_window->show(argc, argv);
 #endif
 
-	simulations.filename(HomeDir.append("linsim.simulations.csv"));
+	string csv_fname;
+	csv_fname.assign(HomeDir).append("linsim.simulations.csv");
+	simulations.filename(csv_fname);
 	txt_simulations_filename->value("linsim.simulations.csv");
 	simulations.load();
 
@@ -844,3 +846,20 @@ Report problems to %s", PACKAGE_STRING, PACKAGE_BUGREPORT);
 	fl_message("%s", szAbout);
 }
 
+#include "guide.cxx"
+
+void guideURL()
+{
+	string deffname = HomeDir;
+	deffname.append("linsim_guide.html");
+	ofstream f(deffname.c_str());
+	if (!f)
+		return;
+	f << szGuide;
+	f.close();
+#ifndef __WOE32__
+	visit_URL((void *)deffname.insert(0, "file://").c_str());
+#else
+	visit_URL((void *)deffname.c_str());
+#endif
+}
