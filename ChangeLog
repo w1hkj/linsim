@@ -1,6 +1,14 @@
-2014-01-03  David Freese  <w1hkj@w1hkj.com>
 
-	d227ec6: WAV file format
+
+=Version 1.0.1=
+
+2014-01-08  David Freese  <w1hkj@w1hkj.com>
+
+	c852818: Quick guide
+	0d88b7a: Output directory
+	3e58c74: AWGN range-series
+	4850b1d: Header info
+	e3d162f: WAV file format
 	893b095: PathSim
 	bb9da11: Simulation spreadsheet
 	ae73c1e: Warnings
