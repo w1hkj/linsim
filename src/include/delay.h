@@ -31,6 +31,7 @@
 class CDelay  
 {
 public:
+	void SampleRate(double sr);
 	void CreateDelays( cmplx* inbuf, bool bt1, cmplx* t1buf, bool bt2, cmplx* t2buf );
 	void SetDelays( double t1, double t2);
 	void CalcBPFilter(double* pIn, cmplx* pOut);
@@ -44,6 +45,9 @@ private:
 	int m_T1ptr;
 	int m_T2ptr;
 	int m_Inptr;
+	double samplerate;
+	int max_delay;
+	int buf_size;
 };
 
 #endif

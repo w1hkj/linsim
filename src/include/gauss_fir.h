@@ -44,4 +44,4 @@ private:
 	double dnorm(double x, double mu, double sigma);
 };
 
-#endif // !defined(AFX_GAUSSFIR_H__D7BB1864_A285_11D4_B4E9_705850C10000__INCLUDED_)
+#endif

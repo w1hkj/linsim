@@ -83,7 +83,7 @@ SoundFile::SoundFile(std::string _fname, int _mode, int freq)
 {
 	fname = _fname;
 	mode = _mode;
-	sample_frequency = freq;
+	linsim_samplerate = sample_frequency = freq;
 	if (!fname.empty()) open(fname, mode);
 
 	int err;
@@ -185,6 +185,8 @@ read_info.sections, read_info.seekable);
 		wav_file_info = read_info;
 
 		inpfile_samplerate = read_info.samplerate;
+
+		linsim_samplerate = inpfile_samplerate;
 
 		read_src_data->src_ratio = 1.0 * linsim_samplerate / inpfile_samplerate;
 		src_set_ratio(read_src_state, read_src_data->src_ratio);

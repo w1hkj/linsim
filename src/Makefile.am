@@ -99,6 +99,8 @@ clean-local:
 linsim_SOURCES += \
 	main.cxx \
 	delay.cxx \
+	filter_tables.cxx \
+	filters.cxx \
 	linsim_ui.cxx \
 	noise_gen.cxx \
 	path.cxx \
@@ -110,6 +112,7 @@ linsim_SOURCES += \
 	include/csv.h \
 	include/delay.h \
 	include/filter_tables.h \
+	include/filters.h \
 	include/gauss_fir.h \
 	include/linsim_ui.h \
 	include/main.h \

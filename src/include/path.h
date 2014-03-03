@@ -34,7 +34,8 @@ class CPath
 {
 public:
 	void CalcPath( cmplx* pIn, cmplx* pOut);
-	void InitPath( double Spread, double Offset, int blocksize,int numpaths, bool active);
+	void InitPath( double Spread, double Offset, int blocksize, int numpaths, bool active);
+	void SampleRate( double sr );
 	CPath();
 	virtual ~CPath();
 	bool active() { return m_PathActive;}
@@ -61,6 +62,8 @@ private:
 	int m_FirState2;
 	int m_FirState3;
 	CGaussFIR* m_pLPFIR;
+	double samplerate;
+	double offset_freq;
 
 };
 

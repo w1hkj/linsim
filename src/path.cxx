@@ -24,32 +24,31 @@
 #include "path.h"
 #include "sim.h"
 
-// pathsim implementation
-//#define K_2PI ( 8.0 * atan(1.0) )			// 2 Pi
-#define K_2PI (2.0 * M_PI)
-#define OFFSET_FREQ_CONST (K_2PI/8000.0)	//2Pi/8000
+#define K_2PI 6.283185307
 #define KGNB 0.62665707	//equivalent Noise BW of Gaussian shaped filter
 
 #define RATE_12_8 0		//Used for 0.1 > Spread >= 0.4
 #define RATE_64 1		//Used for 0.4 > Spread >= 2.0
 #define RATE_320 2		//Used for 2.0 > Spread >= 10.0
 
-
-//////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
-
 CPath::CPath()
 {
 	m_Indx = 0;
 	m_pLPFIR = NULL;
 	m_NoiseSampRate = RATE_320;
+	samplerate = 8000;
 }
 
 CPath::~CPath()
 {
 	if(m_pLPFIR)
 		delete m_pLPFIR;
+}
+
+void CPath::SampleRate( double sr )
+{
+	samplerate = sr;
+	offset_freq = K_2PI / samplerate;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -226,7 +225,7 @@ cmplx offset;
 			pOut[i].x = ((offset.x*tmp.x) - (offset.y*tmp.y));
 			pOut[i].y = ((offset.x*tmp.y) + (offset.y*tmp.x));
 
-			m_Timeinc += (OFFSET_FREQ_CONST * m_Offset);
+			m_Timeinc += (offset_freq * m_Offset);
 			m_Timeinc = fmod(m_Timeinc,K_2PI);	//keep radian counter bounded
 		} else {
 			pOut[i].x = tmp.x;

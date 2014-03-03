@@ -128,7 +128,7 @@ fname_out.clear();} {}
       } {
         MenuItem {} {
           label {&Quick Guide}
-          callback {guideURL();} selected
+          callback {guideURL();}
           xywh {0 0 36 21}
         }
         MenuItem {} {
@@ -352,11 +352,11 @@ Function {make_AWGNseries_dialog()} {open
 } {
   Fl_Window {} {
     label {AGWN series} open
-    xywh {784 430 270 120} type Double hide
+    xywh {784 430 270 120} type Double visible
   } {
     Fl_Spinner cntr_Low_dB {
-      label {Lower s/n}
-      tooltip {Lower limit in dB} xywh {84 51 60 25} minimum -20 maximum 40 value 0
+      label {Lower s/n} selected
+      tooltip {Lower limit in dB} xywh {84 51 60 25} minimum -40 maximum 40 value 0
     }
     Fl_Spinner cntr_High_dB {
       label {Upper s/n}

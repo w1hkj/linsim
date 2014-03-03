@@ -22,13 +22,14 @@
 // ---------------------------------------------------------------------
 
 #include <stdlib.h>
+#include <math.h>
 #include "gauss_fir.h"
 
 // pathsim original
 
-#define SQRT2PI (2.506628275)
-#define PI2 ( 8.0 * atan(1.0) )		// 2 Pi
-#define SQRT2 (1.414213562)
+#define PI2 6.283185307
+#define SQRT2PI 2.506628275
+#define SQRT2 1.414213562
 #define K_GAUSSIAN 1.4	//constant determines accuracy of Gaussian LPFIR.
 						// larger number makes FIR longer but more accurate
 						// This value is good to about -50 dB

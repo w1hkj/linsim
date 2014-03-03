@@ -491,7 +491,7 @@ Fl_Double_Window* make_AWGNseries_dialog() {
     w = o;
     { cntr_Low_dB = new Fl_Spinner(84, 51, 60, 25, "Lower s/n");
       cntr_Low_dB->tooltip("Lower limit in dB");
-      cntr_Low_dB->minimum(-20);
+      cntr_Low_dB->minimum(-40);
       cntr_Low_dB->maximum(40);
       cntr_Low_dB->value(0);
     } // Fl_Spinner* cntr_Low_dB

@@ -28,9 +28,7 @@
 #include "delay.h"
 #include "filter_tables.h"
 
-#define MAXDELAY (50*8)					// 50mSecs max delay
 #define BLOCKSIZE 2048
-#define BUFSIZE (BLOCKSIZE+MAXDELAY)
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -38,11 +36,14 @@
 
 CDelay::CDelay()
 {
-	m_pDelayLine = new cmplx[BUFSIZE];
-	m_pQue = new cmplx[HILBPFIR_LENGTH];
+	samplerate = 8000;
 	m_Inptr = 0;
 	m_T1ptr = 0;
 	m_T2ptr = 0;
+	max_delay = (int)(50 * samplerate / 1000.0);
+	buf_size = BLOCKSIZE + max_delay;
+	m_pDelayLine = new cmplx[buf_size];
+	m_pQue = new cmplx[HILBPFIR_LENGTH];
 }
 
 CDelay::~CDelay()
@@ -51,6 +52,20 @@ CDelay::~CDelay()
 		delete m_pDelayLine;
 	if(m_pQue)
 		delete m_pQue;
+}
+
+void CDelay::SampleRate(double sr)
+{
+	samplerate = sr;
+	if (m_pDelayLine) delete m_pDelayLine;
+	if (m_pQue) delete m_pQue;
+	m_Inptr = 0;
+	m_T1ptr = 0;
+	m_T2ptr = 0;
+	max_delay = 50 * samplerate / 1000;
+	buf_size = BLOCKSIZE + max_delay;
+	m_pDelayLine = new cmplx[buf_size];
+	m_pQue = new cmplx[HILBPFIR_LENGTH];
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -62,21 +77,21 @@ void CDelay::SetDelays( double t1, double t2)	//delays in msecs
 	for (i = 0; i < HILBPFIR_LENGTH; i++) {
 		m_pQue[i] = cmplx(0,0);
 	}
-	for (i = 0; i < BUFSIZE; i++) {
+	for (i = 0; i < buf_size; i++) {
 		m_pDelayLine[i] = cmplx(0,0);
 	}
-	m_Inptr = BUFSIZE-1;
+	m_Inptr = buf_size - 1;
 	m_FirState = HILBPFIR_LENGTH-1;
 
-	int delay1 = (int)(8 * t1);
-	int delay2 = (int)(8 * t2);
+	int delay1 = (int)(t1 * samplerate / 1000.0);
+	int delay2 = (int)(t2 * samplerate / 1000.0);
 
-	if (delay1 > MAXDELAY) delay1 = MAXDELAY;
-	m_T1ptr = BUFSIZE - delay1 - 1;
+	if (delay1 > max_delay) delay1 = max_delay;
+	m_T1ptr = buf_size - delay1 - 1;
 	if (m_T1ptr < 1) m_T1ptr = 1;
 
-	if (delay2 > MAXDELAY) delay2 = MAXDELAY;
-	m_T2ptr = BUFSIZE - delay2 - 1;
+	if (delay2 > max_delay) delay2 = max_delay;
+	m_T2ptr = buf_size - delay2 - 1;
 	if (m_T1ptr < 1) m_T1ptr = 1;
 }
 
@@ -89,14 +104,14 @@ void CDelay::CreateDelays( cmplx* inbuf, bool bt1, cmplx* t1buf, bool bt2, cmplx
 	if (!bt1 && !bt2) return;
 	for (i = 0; i < BLOCKSIZE; i++) {
 		m_pDelayLine[m_Inptr++] = inbuf[i]; // copy new data from inbuf into delay buffer
-		if( m_Inptr >= BUFSIZE ) m_Inptr = 0;
+		if( m_Inptr >= buf_size ) m_Inptr = 0;
 		if (bt1) {
 			t1buf[i] = m_pDelayLine[m_T1ptr++];
-			if( m_T1ptr >= BUFSIZE ) m_T1ptr = 0;
+			if( m_T1ptr >= buf_size ) m_T1ptr = 0;
 		}
 		if (bt2) {
 			t2buf[i] = m_pDelayLine[m_T2ptr++];
-			if (m_T2ptr >= BUFSIZE ) m_T2ptr = 0;
+			if (m_T2ptr >= buf_size ) m_T2ptr = 0;
 		}
 	}
 }
@@ -107,6 +122,7 @@ void CDelay::CreateDelays( cmplx* inbuf, bool bt1, cmplx* t1buf, bool bt2, cmplx
 //   This FIR bandwidth limits the real input as well as creates a
 //   complex I/Q output signal for the rest of the processing chain.
 //////////////////////////////////////////////////////////////////////
+
 void CDelay::CalcBPFilter(double* pIn, cmplx* pOut)
 {
 	cmplx acc;

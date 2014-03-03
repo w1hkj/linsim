@@ -68,9 +68,13 @@ void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INF
 	if(p1.active) numpaths++;
 	if(p2.active) numpaths++;
 
+	path0->SampleRate(sr);
 	path0->InitPath( p0.spread, p0.offset, MAX_BUF_SIZE, numpaths, p0.active );
+	path1->SampleRate(sr);
 	path1->InitPath( p1.spread, p1.offset, MAX_BUF_SIZE, numpaths, p1.active );
+	path2->SampleRate(sr);
 	path2->InitPath( p2.spread, p2.offset, MAX_BUF_SIZE, numpaths, p2.active );
+	delay->SampleRate(sr);
 	delay->SetDelays( d.delay1, d.delay2 );
 
 }

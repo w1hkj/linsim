@@ -366,6 +366,8 @@ printf("signal peak %f, signal peak out %f\n", sim_test.signal_peak,
 */
 }
 
+extern int linsim_samplerate;
+
 void generate_output()
 {
 	double buffer[MAX_BUF_SIZE];
@@ -376,7 +378,11 @@ void generate_output()
 
 	sim_test.AWGN(sim_vals.AWGN_on);
 	sim_test.SetsnrValue(sim_vals.snrdb);
-	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
+
+	init_BPFir(linsim_samplerate);
+	sim_test.init(linsim_samplerate, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
+
+//	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
 
 	set_output_sr();
 
@@ -863,3 +869,4 @@ void guideURL()
 	visit_URL((void *)deffname.c_str());
 #endif
 }
+
