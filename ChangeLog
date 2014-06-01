@@ -1,10 +1,16 @@
 
 
+=Version 2.0.0=
+
+2014-06-01  David Freese  <w1hkj@w1hkj.com>
+
+	f6dd1d6: DIST FILES
+	b0859b8: SampleRate
+
+
 =Version 1.0.1=
 
-2014-01-08  David Freese  <w1hkj@w1hkj.com>
-
-	c852818: Quick guide
+	aef0a6e: Quick guide
 	0d88b7a: Output directory
 	3e58c74: AWGN range-series
 	4850b1d: Header info
