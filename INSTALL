@@ -1,7 +1,7 @@
-Installation Instructions for fl505
+Installation Instructions for linsim
 ************************************
 
-To compile fl505 you will need:
+To compile linsim you will need:
 
   * A recent C++ compiler.  The GNU C++ compilers in the 4.x series are
     known to work.

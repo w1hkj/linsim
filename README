@@ -1,9 +1,13 @@
-Flrig is a transceiver control program for Amateur Radio use.  It does
-not use any 3rd party transceiver control libraries.  It is a c++ pro-
-gram that encapsulates each transceiver in it's own class.  Where ever
-possible the transceiver class(s) use polymorphism to reuse code that
-is portable across a series of transceivers.
+linsim is a computer program intended as a tool for Amateur Radio Digital Mode 
+evaluation under varying HF propogation conditions.  
 
+  Density variations versus altitude in the ionosphere
+  Magnetic-ionic effects that cause polarization-dependent paths
+  Non-uniformity of the ionospheric layers
+
+linsim can be built on multiple computer operating systems;
+
+FreeBSD(TM); Linux(TM), OS X(TM) and Windows(TM).
 The latest version can always be found at:
 
   http://www.w1hkj.com/
