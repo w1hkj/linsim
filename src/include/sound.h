@@ -98,6 +98,7 @@ public:
 	size_t  read(double *buf, size_t count);
 
 	void rewind();
+	size_t size();
 
 //	size_t  Write_stereo(double *, double *, size_t);
 

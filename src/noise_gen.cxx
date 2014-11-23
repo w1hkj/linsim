@@ -25,9 +25,11 @@
 #include <math.h>
 #include "noise_gen.h"
 
-// pathsim original
+// obtained experimentally to compensate for BP filter
+// and give same results as PathSim for a 0 dB s/n TTY signal
 
-#define K_ENBW 1.10		//obtained experimentally to compensate for BP filter
+#define K_ENBW 4.0
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////

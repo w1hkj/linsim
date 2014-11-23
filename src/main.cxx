@@ -2,9 +2,7 @@
 //  linsim; main
 //    Author: Dave Freese, W1HKJ <w1hkj@w1hkj.com>
 //
-//  based on the program RTTY Compare by
-//    Alex Shovkoplyas, VE3NEA ve3nea@dxatlas.com
-//  Original written in Pascal and distributed only for Windows OS
+//  based on the program RTTY PathSim by Moe Wheatley AE4JY
 //
 //  This program is distributed under the GPL license
 //======================================================================
@@ -102,6 +100,7 @@ SIM sim_test;
 _vals sim_vals;
 string fname_in;
 string fname_out;
+string fname_temp;
 
 Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
 Fl_Double_Window *batch_process_selector = (Fl_Double_Window *)0;
@@ -167,6 +166,7 @@ void visit_URL(void* arg)
 void clean_exit()
 {
 	simulations.save();
+	if (!fname_temp.empty()) remove(fname_temp.c_str());
 
 	if (simulator_selector) simulator_selector->hide();
 	if (batch_process_selector)  batch_process_selector->hide();
@@ -211,8 +211,6 @@ int main(int argc, char **argv)
 	batch_process_selector = make_batch_selector_dialog();
 	AWGN_process_dialog = make_AWGNseries_dialog();
 	select_output_dialog = make_folder_dialog();
-
-	Fl::visual (FL_DOUBLE|FL_INDEX);
 
 	sprintf (title, "linsim %s", linsim_VERSION);
 	linsim_window->label(title);
@@ -312,12 +310,16 @@ void set_output_sr()
 		outfile_samplerate = 48000;
 }
 
-vector<double> inpbuff;
-vector<double> outbuff;
+size_t buffs_read;
 
 void analyze_input()
 {
 	if (fname_in.empty()) return;
+	string dir = fname_in;
+	size_t p = dir.find(fl_filename_name(dir.c_str()));
+	if (p != string::npos) dir.erase(p);
+	fname_temp = dir;
+	fname_temp.append("linsim.tmp");
 
 	double buffer[MAX_BUF_SIZE];
 
@@ -327,43 +329,40 @@ void analyze_input()
 	sim_test.signal_rms = 0.0;
 	progress->label("Analyzing input");
 	progress->redraw_label();
+
 	Fl::flush();
+
 	sim_test.signal_rms = 0.0;
 	sim_test.num_buffs = 0;
-	size_t buffs_read = 0;
+
+	buffs_read = 0;
 	sim_test.signal_peak = 0;
 
-	inpbuff.clear();
+	size_t num_buffs = sim_test.sound_in.size() / MAX_BUF_SIZE;
+
+	ofstream tmp(fname_temp.c_str());
+	if (!tmp) { 
+		cout << "Cannot open temp file\n";
+		exit(0);
+	}
 
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
 		sim_test.measure_rms(buffer, MAX_BUF_SIZE);
 		buffs_read++;
-		for (size_t j = 0; j < MAX_BUF_SIZE; j++)
-			inpbuff.push_back(buffer[j]);
 		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
-		Fl::flush();
-	}
 
-	if (sim_test.signal_peak > 1.0 / 65536.0) {
-		sim_test.signal_peak *= 3;
-		for (size_t pq = 0; pq < inpbuff.size(); pq++)
-			inpbuff[pq] /= sim_test.signal_peak;
-		sim_test.signal_rms = sqrt(sim_test.signal_rms) / sim_test.signal_peak;
-	} else {
-		sim_test.signal_rms = 2.0 / 65536.0;
+		progress->value(1.0 * buffs_read / num_buffs);
+		progress->redraw();
+
+		Fl::flush();
+
 	}
+	tmp.close();
+
+	if (sim_test.signal_rms < 1e-6) sim_test.signal_rms = 1e-6;
 
 	sim_test.sound_in.close();
-/*
-printf("Input file size %d\n", (int)inpbuff.size());
-printf("Read %d buffers; processed %d buffers\n", buffs_read, sim_test.num_buffs);
-printf("Target s/n %f\n", sim_test.snr);
-printf("signal RMS %f\n", sim_test.signal_rms);
-printf("signal gain %f, noise RMS %f\n", sim_test.signal_gain, sim_test.noise_rms);
-printf("signal peak %f, signal peak out %f\n", sim_test.signal_peak,
-	sim_test.signal_peak * sim_test.signal_gain);
-*/
 }
 
 extern int linsim_samplerate;
@@ -382,16 +381,37 @@ void generate_output()
 	init_BPFir(linsim_samplerate);
 	sim_test.init(linsim_samplerate, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
 
-//	sim_test.init(8000.0, sim_vals.p0, sim_vals.p1, sim_vals.p2, sim_vals.d);
-
 	set_output_sr();
 
-	if (sim_test.snr >= 1.0) {
-		sim_test.signal_gain = RMS_MAXAMPLITUDE / sim_test.signal_rms;
-		sim_test.noise_rms = (sim_test.signal_gain * sim_test.signal_rms) / sim_test.snr;
-	} else {
-		sim_test.signal_gain = (RMS_MAXAMPLITUDE * sim_test.snr) / sim_test.signal_rms;
-		sim_test.noise_rms = RMS_MAXAMPLITUDE;
+	sim_test.noise_rms = sim_test.signal_rms / sim_test.snr;
+
+	ifstream tmp(fname_temp.c_str());
+	if (!tmp) {
+		cout << "Cannot open temp file\n";
+		exit(0);
+	}
+
+	sim_test.sound_in.open(fname_in, SoundFile::READ);
+
+	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
+	size_t pq = 0;
+	size_t r = 0;
+	double maxsig = 1e-6;
+
+	progress->value(0);
+	progress->minimum(0);
+	progress->maximum(1.0);
+	progress->label("Running Simulation");
+	progress->redraw_label();
+
+	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+		progress->value(1.0 * (++pq) / buffs_read);
+		progress->redraw();
+		Fl::flush();
+		sim_test.Process(buffer, MAX_BUF_SIZE);
+		for (int i = 0; i < MAX_BUF_SIZE; i++)
+			if (fabs(buffer[i]) > maxsig) maxsig = fabs(buffer[i]);
+		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	}
 
 	if (sim_test.sound_out.open(fname_out, SoundFile::WRITE) != 0) {
@@ -400,52 +420,30 @@ void generate_output()
 	}
 
 	progress->value(0);
-	progress->minimum(0);
-	progress->maximum(inpbuff.size() * 1.0);
-	progress->label("Running Simulation");
+	progress->label("Writing Output");
 	progress->redraw_label();
-
-	outbuff.clear();
-
-	for (size_t pq = 0; pq < inpbuff.size(); pq += MAX_BUF_SIZE) {
-		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
-		for (size_t k = 0; k < MAX_BUF_SIZE; k++)
-			buffer[k] = inpbuff[pq + k];
-		if ((pq / MAX_BUF_SIZE) %4 == 0) {
-			progress->value(pq*1.0);
-			progress->redraw();
-			Fl::flush();
-		}
+	sim_test.sound_in.rewind();
+	pq = 0;
+	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
+	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
+		progress->value(1.0 * (++pq) / buffs_read);
+		progress->redraw();
+		Fl::flush();
 		sim_test.Process(buffer, MAX_BUF_SIZE);
-		for (size_t j = 0; j < MAX_BUF_SIZE; j++)
-			outbuff.push_back(buffer[j]);
+		for (int i = 0; i < MAX_BUF_SIZE; i++)
+			buffer[i] *= (0.9 / maxsig);
+		sim_test.sound_out.write(buffer, MAX_BUF_SIZE);
+		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	}
 
-// normalize the output wav file to a max value of 0.707 to prevent clipping
-	progress->value(0);
-	progress->minimum(0);
-	progress->maximum(outbuff.size() * 1.0);
-	progress->label("Writing output");
-	progress->redraw_label();
-
-	double maxout = 0, absval;
-	for (size_t n = 0; n < outbuff.size(); n++) {
-		absval = fabs(outbuff[n]);
-		if (absval > maxout) maxout = absval;
-	}
-	if (maxout == 0) maxout = 0.707;
-	for (size_t n = 0; n < outbuff.size(); n++)
-		outbuff[n] *= (0.707 / maxout);
-
-	for (size_t n = 0; n < outbuff.size(); n += MAX_BUF_SIZE) {
-		sim_test.sound_out.write(&outbuff[n], MAX_BUF_SIZE);
-		if ((n / MAX_BUF_SIZE) % 4 == 0) {
-			progress->value(n*1.0);
-			progress->redraw();
-			Fl::flush();
-		}
-	}
 	sim_test.sound_out.close();
+	sim_test.sound_in.close();
+
+//printf("Processed %d buffers\n", sim_test.num_buffs);
+//printf("Target s/n %f\n", sim_test.snr);
+//printf("signal RMS %f\n", sim_test.signal_rms);
+//printf("Noise RMS %f\n",  sim_test.noise_rms);
+//printf("signal peak %f\n", sim_test.signal_peak);
 
 	progress->label("");
 	progress->redraw_label();
@@ -632,7 +630,7 @@ void clear_main_dialog()
 
 	txt_output_file->value("");
 	txt_input_file->value("");
-	fname_in = fname_out = "";
+	fname_in = fname_out = fname_temp = "";
 
 }
 

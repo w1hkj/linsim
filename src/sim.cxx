@@ -91,11 +91,9 @@ void SIM::measure_rms( double *samples, int BUF_SIZE)
 		ssum += ( smpl * smpl );
 		if (fabs(smpl) > signal_peak) signal_peak = fabs(smpl);
 	}
-	if (ssum > (BUF_SIZE / 16384.0)) { // at least 2 bits of signal
-		ssum /= BUF_SIZE;
-		num_buffs++;
-		signal_rms = (signal_rms * (num_buffs - 1) + ssum) / num_buffs;
-	}
+	ssum /= BUF_SIZE;
+	num_buffs++;
+	signal_rms = (signal_rms * (num_buffs - 1) + ssum) / num_buffs;
 }
 
 // ---------------------------------------------------------------------
@@ -132,7 +130,10 @@ void SIM::Process( double *samples, int BUF_SIZE)
 
 // Add bandwidth limited noise
 	if (b_awgn) {
-		noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, signal_gain, noise_rms);
+		noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, 
+			signal_gain, noise_rms * sqrtf(samplerate / 8000) );
+//			samplerate == 48000 ? noise_rms * 10 :
+//			noise_rms );
 	}
 
 	for (int i = 0; i < BUF_SIZE; i++)

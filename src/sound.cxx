@@ -205,6 +205,13 @@ void SoundFile::close()
 	snd_file = NULL;
 }
 
+size_t SoundFile::size()
+{
+	size_t flen = sf_seek(snd_file, 0, SEEK_END);
+	rewind();
+	return flen;
+}
+
 void SoundFile::rewind()
 {
 	sf_seek(snd_file, 0, SEEK_SET);
