@@ -1,11 +1,6 @@
 # build file to generate the distribution binary tarball
 
 make clean
-./configure --prefix=/tmp/linsim-build
-make install-strip
-tar czf linsim-$1.bin.tgz -C /tmp/linsim-build/bin linsim
-
-make clean
 
 ./configure \
   $PKGCFG \
