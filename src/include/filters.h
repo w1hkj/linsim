@@ -19,7 +19,6 @@
 #ifndef _FILTER_H
 #define _FILTER_H
 
-//#include "complex.h"
 #include <cmath>
 #include <complex>
 

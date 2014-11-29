@@ -198,6 +198,12 @@ static void cb_btn_test(Fl_Button*, void*) {
   run_simulation();
 }
 
+Fl_Button *btn_abort=(Fl_Button *)0;
+
+static void cb_btn_abort(Fl_Button*, void*) {
+  abort_simulation();
+}
+
 Fl_Group *lbl_batch=(Fl_Group *)0;
 
 Fl_Double_Window* make_linsim_window() {
@@ -339,6 +345,12 @@ Fl_Double_Window* make_linsim_window() {
     { btn_test = new Fl_Button(261, 336, 70, 24, "Run Test");
       btn_test->callback((Fl_Callback*)cb_btn_test);
     } // Fl_Button* btn_test
+    { btn_abort = new Fl_Button(261, 336, 70, 24, "ABORT");
+      btn_abort->labelfont(1);
+      btn_abort->labelcolor((Fl_Color)1);
+      btn_abort->callback((Fl_Callback*)cb_btn_abort);
+      btn_abort->hide();
+    } // Fl_Button* btn_abort
     { lbl_batch = new Fl_Group(180, 335, 80, 25, "BATCH");
       lbl_batch->labelfont(1);
       lbl_batch->labelcolor((Fl_Color)1);

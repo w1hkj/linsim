@@ -98,35 +98,50 @@ clean-local:
 # Sources that we build. It is OK to have headers here.
 linsim_SOURCES += \
 	main.cxx \
-	delay.cxx \
-	filter_tables.cxx \
-	filters.cxx \
+	support/delay.cxx \
+	support/filter_tables.cxx \
+	support/filters.cxx \
 	linsim_ui.cxx \
-	noise_gen.cxx \
-	path.cxx \
-	sim.cxx \
-	sound.cxx \
-	gauss_fir.cxx \
-	csv.cxx \
+	support/noise_gen.cxx \
+	support/path.cxx \
+	support/sim.cxx \
+	support/sound.cxx \
+	support/gauss_fir.cxx \
+	support/csv.cxx \
+	utils/debug.cxx \
+	utils/icons.cxx \
+	utils/pixmaps.cxx \
+	utils/pixmaps_tango.cxx \
+	utils/threads.cxx \
+	utils/timeops.cxx \
+	utils/util.cxx \
 	include/cmplx.h \
 	include/csv.h \
+	include/debug.h \
 	include/delay.h \
 	include/filter_tables.h \
 	include/filters.h \
+	include/fl_lock.h \
 	include/gauss_fir.h \
+	include/gettext.h \
+	include/icons.h \
 	include/linsim_ui.h \
 	include/main.h \
 	include/noise_gen.h \
 	include/path.h \
+	include/pixmaps.h \
 	include/sim.h \
 	include/sim_vals.h \
-	include/sound.h
+	include/sound.h \
+	include/threads.h \
+	include/timeops.h \
+	include/util.h
 
 # Additional source files that are distributed
 EXTRA_DIST = \
 	linsim_ui.fl \
 	linsim_icon.cxx \
-	guide.cxx \
+	support/guide.cxx \
 	linsim.rc \
 	include/linsimrc.h
 

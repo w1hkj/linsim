@@ -65,8 +65,7 @@ const double* Kptr;
 double* Firptr;
 
 	RMSlevel = RMSlevel*K_ENBW;	//ENBW gain compensation(measured experimentally)
-	while( i<bufsize )
-	{
+	while( i < bufsize ) {
 // Generate two uniform random numbers between -1 and +1
 // that are inside the unit circle
 		do {
@@ -94,7 +93,8 @@ double* Firptr;
 		if( --m_FirState < 0)
 			m_FirState = HILBPFIR_LENGTH-1;
 //  Add BP filtered noise to signal
-		pIn[i] = siggain*pIn[i++] + u1;
+		pIn[i] = siggain*pIn[i] + u1;
+		i++;
 
 		m_pQue[m_FirState] = (RMSlevel*u2*rad);	//place in circular Queue
 		Firptr = m_pQue;
@@ -105,10 +105,13 @@ double* Firptr;
 		if( --m_FirState < 0)
 			m_FirState = HILBPFIR_LENGTH-1;
 //  Add BP filtered noise to signal
-		pIn[i] = siggain*pIn[i++] + u2;
+		pIn[i] = siggain*pIn[i] + u2;
+		i++;
 #else
-		pIn[i] = siggain*pIn[i++] + RMSlevel*u1*rad;
-		pIn[i] = siggain*pIn[i++] + RMSlevel*u2*rad;
+		pIn[i] = siggain*pIn[i] + RMSlevel*u1*rad;
+		i++;
+		pIn[i] = siggain*pIn[i] + RMSlevel*u2*rad;
+		i++;
 #endif
 	}
 }

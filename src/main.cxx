@@ -39,6 +39,7 @@
 
 #include "config.h"
 #include "sound.h"
+#include "util.h"
 
 #ifdef WIN32
 #	include "linsimrc.h"
@@ -66,6 +67,11 @@ using namespace std;
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Image.H>
 #include <FL/Fl_File_Chooser.H>
+
+void fatal_error(string sz_error);
+void process_run_simulation();
+void process_batch_items();
+void process_AWGN_series();
 
 string BaseDir = "";
 string HomeDir = "";
@@ -143,6 +149,7 @@ void visit_URL(void* arg)
 		for (size_t i = 0; i < sizeof(browsers)/sizeof(browsers[0]); i++)
 			if (browsers[i])
 				execlp(browsers[i], browsers[i], url, (char*)0);
+		fatal_error("Could not find a web browser");
 		exit(EXIT_FAILURE);
 	case -1:
 		fl_alert(
@@ -163,8 +170,75 @@ void visit_URL(void* arg)
 #endif
 }
 
+pthread_t *comp_thread = 0;
+pthread_mutex_t mutex_comp = PTHREAD_MUTEX_INITIALIZER;
+bool exit_comp_loop = false;
+bool op_abort = false;
+
+enum {IDLE, RUN, BATCH, AWGN_SERIES};
+int  simulation = IDLE;
+
+void reset_buttons(void *)
+{
+	btn_abort->hide();
+	btn_test->show();
+}
+
+void * comp_loop(void *d)
+{
+	exit_comp_loop = false;
+
+	while(!exit_comp_loop) {
+		try {
+			switch (simulation) {
+				case RUN :
+					process_run_simulation();
+					simulation = IDLE;
+					Fl::awake(reset_buttons);
+					Fl::awake(clear_main_dialog);
+					op_abort = false;
+					break;
+				case BATCH :
+					process_batch_items();
+					simulation = IDLE;
+					Fl::awake(reset_buttons);
+					Fl::awake(clear_main_dialog);
+					op_abort = false;
+					break;
+				case AWGN_SERIES :
+					process_AWGN_series();
+					simulation = IDLE;
+					Fl::awake(reset_buttons);
+					Fl::awake(clear_main_dialog);
+					op_abort = false;
+					break;
+				case IDLE :
+				default : ;
+			}
+		} catch (const std::string errmsg) {
+			printf("fatal error: %s\n", errmsg.c_str());
+			exit(0);
+		}
+		MilliSleep(250);
+	}
+	return NULL;
+}
+
+void start_computation_thread()
+{
+	comp_thread = new pthread_t;
+	if (pthread_create(comp_thread, NULL, comp_loop, NULL)) {
+		fatal_error("pthread_create");
+		exit(EXIT_FAILURE);
+	}
+}
+
 void clean_exit()
 {
+	btn_abort->hide();
+	btn_test->show();
+	op_abort = true;
+
 	simulations.save();
 	if (!fname_temp.empty()) remove(fname_temp.c_str());
 
@@ -172,6 +246,9 @@ void clean_exit()
 	if (batch_process_selector)  batch_process_selector->hide();
 	if (AWGN_process_dialog) AWGN_process_dialog->hide();
 	if (select_output_dialog) select_output_dialog->hide();
+
+	exit_comp_loop = true;
+	pthread_join(*comp_thread, 0);
 
 	linsim_window->hide();
 }
@@ -185,7 +262,7 @@ void exit_main(Fl_Widget *w)
 
 // Show an error dialog and print to cerr if available.
 // On win32 Fl::fatal displays its own error window.
-static void fatal_error(string sz_error)
+void fatal_error(string sz_error)
 {
 	string s = "Fatal error!\n";
 	s.append(sz_error).append("\n").append(strerror(errno));
@@ -234,6 +311,9 @@ int main(int argc, char **argv)
 		fatal_error(s);
 	}
 
+	Fl::lock();
+	Fl::scheme("gtk+");
+
 #ifdef WIN32
 	linsim_window->icon((char*)LoadIcon(fl_display, MAKEINTRESOURCE(IDI_ICON)));
 	linsim_window->show(argc, argv);
@@ -250,6 +330,8 @@ int main(int argc, char **argv)
 	simulations.filename(csv_fname);
 	txt_simulations_filename->value("linsim.simulations.csv");
 	simulations.load();
+
+	start_computation_thread();
 
 	return Fl::run();
 }
@@ -310,8 +392,26 @@ void set_output_sr()
 		outfile_samplerate = 48000;
 }
 
+std::string str_progress = "";
+float f_progress = 0.0;
+
+void set_progress(void *data)
+{
+	progress->label(str_progress.c_str());
+	progress->redraw_label();
+	Fl::flush();
+}
+
+void update_progress(void *data)
+{
+	progress->value(f_progress);
+	progress->redraw();
+	Fl::flush();
+}
+
 size_t buffs_read;
 
+// CALLED ONLY FROM THE COMP THREAD
 void analyze_input()
 {
 	if (fname_in.empty()) return;
@@ -327,10 +427,10 @@ void analyze_input()
 
 	size_t r = 0;
 	sim_test.signal_rms = 0.0;
-	progress->label("Analyzing input");
-	progress->redraw_label();
 
-	Fl::flush();
+	str_progress = "Analyzing input";
+	Fl::awake(set_progress);
+	if (op_abort) return;
 
 	sim_test.signal_rms = 0.0;
 	sim_test.num_buffs = 0;
@@ -341,9 +441,8 @@ void analyze_input()
 	size_t num_buffs = sim_test.sound_in.size() / MAX_BUF_SIZE;
 
 	ofstream tmp(fname_temp.c_str());
-	if (!tmp) { 
-		cout << "Cannot open temp file\n";
-		exit(0);
+	if (!tmp) {
+		throw "Cannot open temp file";
 	}
 
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
@@ -351,12 +450,9 @@ void analyze_input()
 		sim_test.measure_rms(buffer, MAX_BUF_SIZE);
 		buffs_read++;
 		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
-
-		progress->value(1.0 * buffs_read / num_buffs);
-		progress->redraw();
-
-		Fl::flush();
-
+		f_progress = 1.0 * buffs_read / num_buffs;
+		Fl::awake(update_progress);
+		if (op_abort) break;
 	}
 	tmp.close();
 
@@ -367,6 +463,7 @@ void analyze_input()
 
 extern int linsim_samplerate;
 
+// CALLED ONLY FROM THE COMP THREAD
 void generate_output()
 {
 	double buffer[MAX_BUF_SIZE];
@@ -387,8 +484,7 @@ void generate_output()
 
 	ifstream tmp(fname_temp.c_str());
 	if (!tmp) {
-		cout << "Cannot open temp file\n";
-		exit(0);
+		throw "Cannot open temp file";
 	}
 
 	sim_test.sound_in.open(fname_in, SoundFile::READ);
@@ -398,37 +494,38 @@ void generate_output()
 	size_t r = 0;
 	double maxsig = 1e-6;
 
-	progress->value(0);
-	progress->minimum(0);
-	progress->maximum(1.0);
-	progress->label("Running Simulation");
-	progress->redraw_label();
+	f_progress = 0.0;
+	Fl::awake(update_progress);
+	str_progress = "Running Simulation";
+	Fl::awake(set_progress);
 
 	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
-		progress->value(1.0 * (++pq) / buffs_read);
-		progress->redraw();
-		Fl::flush();
+		f_progress = 1.0 * (++pq) / buffs_read;
+		Fl::awake(update_progress);
+		if (op_abort) break;
 		sim_test.Process(buffer, MAX_BUF_SIZE);
 		for (int i = 0; i < MAX_BUF_SIZE; i++)
 			if (fabs(buffer[i]) > maxsig) maxsig = fabs(buffer[i]);
 		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	}
+	if (op_abort) return;
 
 	if (sim_test.sound_out.open(fname_out, SoundFile::WRITE) != 0) {
-		printf("Could not open sound file for WRITE.\n");
-		exit(0);
+		throw "Could not open sound file for WRITE";
 	}
 
-	progress->value(0);
-	progress->label("Writing Output");
-	progress->redraw_label();
+	f_progress = 0.0;
+	Fl::awake(update_progress);
+	str_progress = "Writing Output";
+	Fl::awake(set_progress);
+
 	sim_test.sound_in.rewind();
 	pq = 0;
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
-		progress->value(1.0 * (++pq) / buffs_read);
-		progress->redraw();
-		Fl::flush();
+		f_progress = 1.0 * (++pq) / buffs_read;
+		Fl::awake(update_progress);
+		if (op_abort) break;
 		sim_test.Process(buffer, MAX_BUF_SIZE);
 		for (int i = 0; i < MAX_BUF_SIZE; i++)
 			buffer[i] *= (0.9 / maxsig);
@@ -439,22 +536,24 @@ void generate_output()
 	sim_test.sound_out.close();
 	sim_test.sound_in.close();
 
-//printf("Processed %d buffers\n", sim_test.num_buffs);
-//printf("Target s/n %f\n", sim_test.snr);
-//printf("signal RMS %f\n", sim_test.signal_rms);
-//printf("Noise RMS %f\n",  sim_test.noise_rms);
-//printf("signal peak %f\n", sim_test.signal_peak);
+	str_progress = "";
+	Fl::awake(set_progress);
+	f_progress = 0.0;
+	Fl::awake(update_progress);
+}
 
-	progress->label("");
-	progress->redraw_label();
-	progress->value(0);
-	progress->redraw();
+// CALLED ONLY FROM THE COMP THREAD
+void process_run_simulation()
+{
+	btn_test->hide();
+	btn_abort->show();
+	analyze_input();
+	generate_output();
 }
 
 void run_simulation()
 {
-	analyze_input();
-	generate_output();
+	simulation = RUN;
 }
 
 void populate_simulation_selector()
@@ -543,6 +642,55 @@ void tbl_simulations_selected()
 	btn_update_selection->deactivate();
 }
 
+static std::string ofname = "";
+void show_ofname(void *)
+{
+	txt_output_file->value(ofname.c_str());
+}
+
+static void show_what_simulation(void *d)
+{
+	int n = reinterpret_cast<int>(d);
+	txt_simulation->value(simulations.dbrecs[n].title.c_str());
+}
+
+static void show_p0(void *d)
+{
+	int n = reinterpret_cast<int>(d);
+	bool b = simulations.dbrecs[n].p0 == "1";
+	p0_on->value(b);
+	inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
+	inp_offset0->value(simulations.dbrecs[n].offset_0.c_str());
+}
+
+static void show_p1(void *d)
+{
+	int n = reinterpret_cast<int>(d);
+	bool b = simulations.dbrecs[n].p1 == "1";
+	p1_on->value(b);
+	inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
+	inp_spread1->value(simulations.dbrecs[n].spread_1.c_str());
+	inp_offset1->value(simulations.dbrecs[n].offset_1.c_str());
+}
+
+static void show_p2(void *d)
+{
+	int n = reinterpret_cast<int>(d);
+	bool b = simulations.dbrecs[n].p2 == "1";
+	p2_on->value(b);
+	inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
+	inp_spread2->value(simulations.dbrecs[n].spread_2.c_str());
+	inp_offset2->value(simulations.dbrecs[n].offset_2.c_str());
+}
+
+static void show_simulations(void *d)
+{
+	int n = reinterpret_cast<int>(d);
+	bool b = simulations.dbrecs[n].awgn == "1";
+	inp_AWGN_on->value(b);
+	inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
+}
+
 void select_entry(int n)
 {
 //	simulator_selector->hide();
@@ -610,7 +758,7 @@ void cancel_batch_process()
 	batch_process_selector->hide();
 }
 
-void clear_main_dialog()
+void clear_main_dialog(void *data)
 {
 	txt_simulation->value("");
 
@@ -632,11 +780,39 @@ void clear_main_dialog()
 	txt_input_file->value("");
 	fname_in = fname_out = fname_temp = "";
 
+	progress->label("");
+	progress->redraw_label();
+
+	progress->value(0);
+	progress->redraw();
+	Fl::flush();
+
+	lbl_batch->hide();
+
 }
 
-void batch_process_items()
+void clear_AWGN(void *d)
 {
-	batch_process_selector->hide();
+	lbl_batch->show();
+	p0_on->value(0);
+	inp_spread0->value(0);
+	inp_offset0->value(0);
+	p1_on->value(0);
+	inp_delay1->value(0);
+	inp_spread1->value(0);
+	inp_offset1->value(0);
+	p2_on->value(0);
+	inp_delay2->value(0);
+	inp_spread2->value(0);
+	inp_offset2->value(0);
+	inp_AWGN_on->value(1);
+}
+
+// CALLED ONLY FROM THE COMP THREAD
+void process_batch_items()
+{
+	printf("run batch\n");
+
 	string basename;
 	string simname;
 
@@ -654,10 +830,8 @@ void batch_process_items()
 	if (p != string::npos) basename.erase(p);
 	basename.append(".");
 
-	lbl_batch->show();
 	analyze_input();
 
-	bool b;
 	for (int n = 0; n < tbl_batch_simulations->nitems(); n++) {
 		if (tbl_batch_simulations->checked(n+1)) {
 			fname_out.assign(basename);
@@ -669,37 +843,25 @@ void batch_process_items()
 			while ((p = simname.find(" ")) != string::npos) simname[p] = '_';
 
 			fname_out.append(simname).append(".wav");
-			txt_output_file->value(fname_out.c_str());
+			ofname = fname_out;
+			Fl::awake(show_ofname);
+			Fl::awake(show_what_simulation, reinterpret_cast<void *>(n));
+			Fl::awake(show_p0, reinterpret_cast<void *>(n));
+			Fl::awake(show_p1, reinterpret_cast<void *>(n));
+			Fl::awake(show_p2, reinterpret_cast<void *>(n));
+			Fl::awake(show_simulations, reinterpret_cast<void *>(n));
+			if (op_abort) break;
 
-			txt_simulation->value(simulations.dbrecs[n].title.c_str());
-
-			b = simulations.dbrecs[n].p0 == "1";
-			p0_on->value(b);
-			inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
-			inp_offset0->value(simulations.dbrecs[n].offset_0.c_str());
-
-			b = simulations.dbrecs[n].p1 == "1";
-			p1_on->value(b);
-			inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
-			inp_spread1->value(simulations.dbrecs[n].spread_1.c_str());
-			inp_offset1->value(simulations.dbrecs[n].offset_1.c_str());
-
-			b = simulations.dbrecs[n].p2 == "1";
-			p2_on->value(b);
-			inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
-			inp_spread2->value(simulations.dbrecs[n].spread_2.c_str());
-			inp_offset2->value(simulations.dbrecs[n].offset_2.c_str());
-
-			b = simulations.dbrecs[n].awgn == "1";
-			inp_AWGN_on->value(b);
-			inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
-
-//run_simulation();
 			generate_output();
 		}
 	}
-	lbl_batch->hide();
-	clear_main_dialog();
+	Fl::awake(clear_main_dialog);
+}
+
+void batch_process_items()
+{
+	batch_process_selector->hide();
+	simulation = BATCH;
 }
 
 void open_batch_process_dialog()
@@ -739,15 +901,27 @@ void save_simulation_set_as()
 		txt_simulations_filename->value(fl_filename_name(simulations.filename().c_str()));
 }
 
-void AWGNseries_process()
+// CALLED ONLY FROM THE COMP THREAD
+static std::string str_szdb = "";
+static void update_AWGN_rms(void *)
 {
+	inp_AWGN_rms->value(str_szdb.c_str());
+}
+
+static std::string str_simname = "";
+static void update_simname(void *)
+{
+	txt_simulation->value(str_simname.c_str());
+}
+
+void process_AWGN_series()
+{
+	printf("run AWGN series\n");
 	int upper = (int)cntr_High_dB->value();
 	int lower = (int)cntr_Low_dB->value();
 	int step  = (int)cntr_Step_dB->value();
 	char simname[100];
 	char szdb[10];
-
-	AWGN_process_dialog->hide();
 
 	string basename;
 	if (btn_same_as_input_file->value())
@@ -764,37 +938,38 @@ void AWGNseries_process()
 	if (p != string::npos) basename.erase(p);
 	basename.append(".");
 
-	lbl_batch->show();
-
-	p0_on->value(0);
-	inp_spread0->value(0);
-	inp_offset0->value(0);
-	p1_on->value(0);
-	inp_delay1->value(0);
-	inp_spread1->value(0);
-	inp_offset1->value(0);
-	p2_on->value(0);
-	inp_delay2->value(0);
-	inp_spread2->value(0);
-	inp_offset2->value(0);
-	inp_AWGN_on->value(1);
+	Fl::awake(clear_AWGN);
 
 	analyze_input();
 
 	for (int db = lower; db <= upper; db += step) {
 		snprintf(szdb, sizeof(szdb), "%d", db);
-		inp_AWGN_rms->value(szdb);
+
+		str_szdb = szdb;
+		Fl::awake(update_AWGN_rms);
+		if (op_abort) break;
+
 		if (szdb[0] == '-') szdb[0] = 'm';
 		snprintf(simname, sizeof(simname), "AWGN_SN_%-s", szdb);
-		txt_simulation->value(simname);
+
+		str_simname = simname;
+		Fl::awake(update_simname);
+
 		fname_out.assign(basename);
 		fname_out.append(simname).append(".wav");
-		txt_output_file->value(fname_out.c_str());
+		ofname = fname_out;
+		Fl::awake(show_ofname);
+
 		generate_output();
 	}
 
-	lbl_batch->hide();
-	clear_main_dialog();
+	Fl::awake(clear_main_dialog);
+}
+
+void AWGNseries_process()
+{
+	AWGN_process_dialog->hide();
+	simulation = AWGN_SERIES;
 }
 
 void cancel_AWGNseries()
@@ -807,6 +982,12 @@ void AWGNseries_dialog()
 	if (!AWGN_process_dialog) AWGN_process_dialog = make_AWGNseries_dialog();
 	AWGN_process_dialog->show();
 }
+
+void abort_simulation()
+{
+	op_abort = true;
+}
+
 
 void output_folder_select()
 {
@@ -850,7 +1031,7 @@ Report problems to %s", PACKAGE_STRING, PACKAGE_BUGREPORT);
 	fl_message("%s", szAbout);
 }
 
-#include "guide.cxx"
+#include "support/guide.cxx"
 
 void guideURL()
 {

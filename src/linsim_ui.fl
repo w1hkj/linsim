@@ -276,6 +276,11 @@ txt_output_file->value(fname_out.c_str());}
       callback {run_simulation();}
       xywh {261 336 70 24}
     }
+    Fl_Button btn_abort {
+      label ABORT
+      callback {abort_simulation();} selected
+      xywh {261 336 70 24} labelfont 1 labelcolor 1 hide
+    }
     Fl_Group lbl_batch {
       label BATCH open
       xywh {180 335 80 25} labelfont 1 labelcolor 1 align 16 hide
@@ -355,7 +360,7 @@ Function {make_AWGNseries_dialog()} {open
     xywh {784 430 270 120} type Double visible
   } {
     Fl_Spinner cntr_Low_dB {
-      label {Lower s/n} selected
+      label {Lower s/n}
       tooltip {Lower limit in dB} xywh {84 51 60 25} minimum -40 maximum 40 value 0
     }
     Fl_Spinner cntr_High_dB {

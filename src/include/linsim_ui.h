@@ -35,6 +35,7 @@ extern Fl_Float_Input *inp_AWGN_rms;
 #include <FL/Fl_Progress.H>
 extern Fl_Progress *progress;
 extern Fl_Button *btn_test;
+extern Fl_Button *btn_abort;
 extern Fl_Group *lbl_batch;
 Fl_Double_Window* make_linsim_window();
 extern Fl_Menu_Item menu_[];
