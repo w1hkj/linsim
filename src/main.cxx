@@ -2,10 +2,26 @@
 //  linsim; main
 //    Author: Dave Freese, W1HKJ <w1hkj@w1hkj.com>
 //
-//  based on the program RTTY PathSim by Moe Wheatley AE4JY
+//  based on the program PathSim by Moe Wheatley AE4JY
 //
-//  This program is distributed under the GPL license
-//======================================================================
+//This program is free software; you can redistribute it and/or
+//modify it under the terms of the GNU General Public License
+//as published by the Free Software Foundation; either version 2
+//of the License, or any later version.
+//
+//This program is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
+//
+//You should have received a copy of the GNU General Public License
+//along with this program; if not, write to the
+//
+//  Free Software Foundation, Inc.
+//  51 Franklin Street, Fifth Floor
+//  Boston, MA  02110-1301 USA.
+//
+// ---------------------------------------------------------------------
 
 #include "main.h"
 #include <string>
@@ -15,6 +31,7 @@
 
 #include <fstream>
 #include <ostream>
+#include <iostream>
 
 #include <cstring>
 #include <ctime>
@@ -106,7 +123,6 @@ SIM sim_test;
 _vals sim_vals;
 string fname_in;
 string fname_out;
-string fname_temp;
 
 Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
 Fl_Double_Window *batch_process_selector = (Fl_Double_Window *)0;
@@ -240,7 +256,6 @@ void clean_exit()
 	op_abort = true;
 
 	simulations.save();
-	if (!fname_temp.empty()) remove(fname_temp.c_str());
 
 	if (simulator_selector) simulator_selector->hide();
 	if (batch_process_selector)  batch_process_selector->hide();
@@ -418,8 +433,6 @@ void analyze_input()
 	string dir = fname_in;
 	size_t p = dir.find(fl_filename_name(dir.c_str()));
 	if (p != string::npos) dir.erase(p);
-	fname_temp = dir;
-	fname_temp.append("linsim.tmp");
 
 	double buffer[MAX_BUF_SIZE];
 
@@ -427,34 +440,39 @@ void analyze_input()
 
 	size_t r = 0;
 	sim_test.signal_rms = 0.0;
+	sim_test.signal_peak = 0.0;
+	sim_test.num_buffs = 0;
 
 	str_progress = "Analyzing input";
 	Fl::awake(set_progress);
 	if (op_abort) return;
-
-	sim_test.signal_rms = 0.0;
-	sim_test.num_buffs = 0;
 
 	buffs_read = 0;
 	sim_test.signal_peak = 0;
 
 	size_t num_buffs = sim_test.sound_in.size() / MAX_BUF_SIZE;
 
-	ofstream tmp(fname_temp.c_str());
-	if (!tmp) {
-		throw "Cannot open temp file";
-	}
-
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
-		sim_test.measure_rms(buffer, MAX_BUF_SIZE);
+		sim_test.measure_rms(buffer, r);//MAX_BUF_SIZE);
 		buffs_read++;
 		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 		f_progress = 1.0 * buffs_read / num_buffs;
 		Fl::awake(update_progress);
 		if (op_abort) break;
 	}
-	tmp.close();
+/*
+printf("\
+Peak power  : %.3f\n\
+RMS power   : %.3f\n\
+Power ratio : %.1f\n\
+Peak/RMS    : %.1f\n", 
+sim_test.signal_peak * sim_test.signal_peak, 
+sim_test.signal_rms,
+sim_test.signal_peak * sim_test.signal_peak / sim_test.signal_rms,
+sim_test.signal_peak / sqrt(sim_test.signal_rms)
+);
+*/
 
 	if (sim_test.signal_rms < 1e-6) sim_test.signal_rms = 1e-6;
 
@@ -481,11 +499,6 @@ void generate_output()
 	set_output_sr();
 
 	sim_test.noise_rms = sim_test.signal_rms / sim_test.snr;
-
-	ifstream tmp(fname_temp.c_str());
-	if (!tmp) {
-		throw "Cannot open temp file";
-	}
 
 	sim_test.sound_in.open(fname_in, SoundFile::READ);
 
@@ -778,7 +791,7 @@ void clear_main_dialog(void *data)
 
 	txt_output_file->value("");
 	txt_input_file->value("");
-	fname_in = fname_out = fname_temp = "";
+	fname_in = fname_out = "";
 
 	progress->label("");
 	progress->redraw_label();
