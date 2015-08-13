@@ -10,7 +10,9 @@ linsim_LDADD = @linsim_BUILD_LDADD@
 
 MINGW32_SRC = \
 	linsim.rc \
-	include/linsimrc.h
+	include/linsimrc.h \
+	include/compat.h \
+	include/compat-mingw.h
 
 # We distribute these but do not always compile them
 EXTRA_linsim_SOURCES = $(linsim_WIN32_RES_SRC) $(MINGW32_SRC)
@@ -155,7 +157,8 @@ EXTRA_DIST += \
 	$(srcdir)/../data/linsim.simulations.xls \
 	$(srcdir)/../data/linsim.simulations.csv \
 	$(srcdir)/../scripts/mknsisinst.sh \
-	$(srcdir)/../scripts/build.mxe \
+	$(srcdir)/../scripts/buildmxe.sh \
+	$(srcdir)/../scripts/builddist.sh \
 	$(srcdir)/../data/mac/Info.plist.in \
 	$(srcdir)/../data/mac/linsim.icns \
 	$(srcdir)/../scripts/mkappbundle.sh \

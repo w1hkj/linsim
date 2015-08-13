@@ -1,8 +1,4 @@
-# build file to generate the distribution binary tarball
-
-autoreconf
-
-make clean
+#!/bin/sh
 
 ./configure \
   $PKGCFG \
@@ -16,11 +12,4 @@ make
 
 $PREFIX/bin/i686-w64-mingw32.static-strip src/linsim.exe
 make nsisinst
-mv src/*setup*exe 
-
-make clean
-
-# build the distribution tarball
-./configure
-make distcheck
-make clean
+mv src/*setup*exe .

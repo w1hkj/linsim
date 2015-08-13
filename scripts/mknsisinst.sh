@@ -34,7 +34,6 @@ fi
 
 set -e
 
-test "x$NOSTRIP" = "x" && $STRIP -S "$linsim_bin"
 def="$def -Dlinsim_NAME=$linsim_name -Dlinsim_BINARY=$linsim_bin -Dlinsim_VERSION=$PACKAGE_VERSION"
 
 $MAKENSIS -V2 -NOCD -D"INSTALLER_FILE=$INSTALLER_FILE" -D"LICENSE_FILE=$data/../COPYING" \
