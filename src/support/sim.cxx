@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <string>
 
+#include <iostream>
+
 SIM::SIM()
 {
 	noise_gen = new CNoiseGen;
@@ -64,7 +66,6 @@ void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INF
 	numpaths = 0;
 
 	samplerate = sr;
-	signal_rms = RMS_MAXAMPLITUDE;
 
 	noise_gen->InitNoiseGen();
 
@@ -88,16 +89,21 @@ void SIM::init(double sr, PATH_INFO &p0, PATH_INFO &p1, PATH_INFO &p2, DELAY_INF
 // ---------------------------------------------------------------------
 void SIM::measure_rms( double *samples, int BUF_SIZE)
 {
-	ssum = 0.0;
-	double smpl;
-	for( int i = 0; i <BUF_SIZE; i++) {
+//	ssum = 0.0;
+	double smpl, peak;
+	for( int i = 0; i < BUF_SIZE; i++) {
 		smpl = samples[i];
-		ssum += ( smpl * smpl );
-		if (fabs(smpl) > signal_peak) signal_peak = fabs(smpl);
+		peak = fabs(smpl);
+		signal_rms += (smpl * smpl);
+//		ssum += ( smpl * smpl );
+		if (peak > signal_peak) signal_peak = peak;
 	}
-	ssum /= BUF_SIZE;
-	num_buffs++;
-	signal_rms = (signal_rms * (num_buffs - 1) + ssum) / num_buffs;
+//	signal_rms += ssum;
+	num_buffs += BUF_SIZE;
+//	signal_rms = (signal_rms * num_buffs + sqrtf(ssum));
+//	num_buffs += BUF_SIZE;
+//	signal_rms /= num_buffs;
+
 }
 
 // ---------------------------------------------------------------------
@@ -135,9 +141,8 @@ void SIM::Process( double *samples, int BUF_SIZE)
 // Add bandwidth limited noise
 	if (b_awgn) {
 		noise_gen->AddBWLimitedNoise(BUF_SIZE, sim_buffer, 
-			signal_gain, noise_rms * sqrtf(samplerate / 8000) );
-//			samplerate == 48000 ? noise_rms * 10 :
-//			noise_rms );
+			signal_gain,
+			noise_rms * sqrtf(samplerate / 8000.0) );
 	}
 
 	for (int i = 0; i < BUF_SIZE; i++)

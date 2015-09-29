@@ -31,7 +31,6 @@
 
 #include <fstream>
 #include <ostream>
-#include <iostream>
 
 #include <cstring>
 #include <ctime>
@@ -440,12 +439,13 @@ void analyze_input()
 
 	size_t r = 0;
 	sim_test.signal_rms = 0.0;
-	sim_test.signal_peak = 0.0;
-	sim_test.num_buffs = 0;
 
 	str_progress = "Analyzing input";
 	Fl::awake(set_progress);
 	if (op_abort) return;
+
+	sim_test.signal_rms = 0.0;
+	sim_test.num_buffs = 0;
 
 	buffs_read = 0;
 	sim_test.signal_peak = 0;
@@ -454,25 +454,14 @@ void analyze_input()
 
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 	while ((r = sim_test.sound_in.read(buffer, MAX_BUF_SIZE)) > 0) {
-		sim_test.measure_rms(buffer, r);//MAX_BUF_SIZE);
+		sim_test.measure_rms(buffer, MAX_BUF_SIZE);
 		buffs_read++;
 		memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
 		f_progress = 1.0 * buffs_read / num_buffs;
 		Fl::awake(update_progress);
 		if (op_abort) break;
 	}
-/*
-printf("\
-Peak power  : %.3f\n\
-RMS power   : %.3f\n\
-Power ratio : %.1f\n\
-Peak/RMS    : %.1f\n", 
-sim_test.signal_peak * sim_test.signal_peak, 
-sim_test.signal_rms,
-sim_test.signal_peak * sim_test.signal_peak / sim_test.signal_rms,
-sim_test.signal_peak / sqrt(sim_test.signal_rms)
-);
-*/
+	sim_test.signal_rms = sqrtf(sim_test.signal_rms / sim_test.num_buffs);
 
 	if (sim_test.signal_rms < 1e-6) sim_test.signal_rms = 1e-6;
 
@@ -498,7 +487,12 @@ void generate_output()
 
 	set_output_sr();
 
-	sim_test.noise_rms = sim_test.signal_rms / sim_test.snr;
+	sim_test.noise_rms = (sim_test.signal_rms / sim_test.snr) / 5;
+
+//std::cout << "peak  " << sim_test.signal_peak << "\n";
+//std::cout << "rms   " << sim_test.signal_rms << "\n";
+//std::cout << "snr   " << sim_test.snr << "\n";
+//std::cout << "noise " << sim_test.noise_rms << "\n";
 
 	sim_test.sound_in.open(fname_in, SoundFile::READ);
 
