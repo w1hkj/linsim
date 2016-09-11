@@ -58,7 +58,7 @@ void CNoiseGen::InitNoiseGen()
 // Adds bufsize gaussian random doubles with 0 mean and
 // RMSlevel = RMS = std to the specified buffer, pIn
 //////////////////////////////////////////////////////////////////
-void CNoiseGen::AddBWLimitedNoise(int bufsize, double *pIn, double siggain,double RMSlevel)
+void CNoiseGen::AddBWLimitedNoise(int bufsize, double *pIn, double siggain, double RMSlevel)
 {
 int i = 0, j = 0;
 double rad;

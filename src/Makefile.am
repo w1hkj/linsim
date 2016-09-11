@@ -14,6 +14,31 @@ MINGW32_SRC = \
 	include/compat.h \
 	include/compat-mingw.h
 
+XMLRPCPP_SRC = \
+	xmlrpcpp/XmlRpcBase64.h \
+	xmlrpcpp/XmlRpcClient.cpp \
+	xmlrpcpp/XmlRpcClient.h \
+	xmlrpcpp/XmlRpcDispatch.cpp \
+	xmlrpcpp/XmlRpcDispatch.h \
+	xmlrpcpp/XmlRpcException.h \
+	xmlrpcpp/XmlRpc.h \
+	xmlrpcpp/XmlRpcMutex.cpp \
+	xmlrpcpp/XmlRpcMutex.h \
+	xmlrpcpp/XmlRpcServerConnection.cpp \
+	xmlrpcpp/XmlRpcServerConnection.h \
+	xmlrpcpp/XmlRpcServer.cpp \
+	xmlrpcpp/XmlRpcServer.h \
+	xmlrpcpp/XmlRpcServerMethod.cpp \
+	xmlrpcpp/XmlRpcServerMethod.h \
+	xmlrpcpp/XmlRpcSocket.cpp \
+	xmlrpcpp/XmlRpcSocket.h \
+	xmlrpcpp/XmlRpcSource.cpp \
+	xmlrpcpp/XmlRpcSource.h \
+	xmlrpcpp/XmlRpcUtil.cpp \
+	xmlrpcpp/XmlRpcUtil.h \
+	xmlrpcpp/XmlRpcValue.cpp \
+	xmlrpcpp/XmlRpcValue.h
+
 # We distribute these but do not always compile them
 EXTRA_linsim_SOURCES = $(linsim_WIN32_RES_SRC) $(MINGW32_SRC)
 
@@ -117,6 +142,9 @@ linsim_SOURCES += \
 	utils/threads.cxx \
 	utils/timeops.cxx \
 	utils/util.cxx \
+	utils/xmlrpc_client.cxx \
+	utils/configure.cxx \
+	include/configure.h \
 	include/cmplx.h \
 	include/csv.h \
 	include/debug.h \
@@ -137,7 +165,9 @@ linsim_SOURCES += \
 	include/sound.h \
 	include/threads.h \
 	include/timeops.h \
-	include/util.h
+	include/util.h \
+	include/xmlrpc_client.h \
+	$(XMLRPCPP_SRC)
 
 # Additional source files that are distributed
 EXTRA_DIST = \

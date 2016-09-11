@@ -4,6 +4,7 @@
 //
 // Copyright (C) 2006-2013
 //              Dave Freese, W1HKJ
+//              Robert Stiles, KK5VD
 //
 // Copyright (C) 2007-2013
 //              Stelios Bounanos, M0GLD
@@ -34,14 +35,24 @@
 #include <sndfile.h>
 #include <samplerate.h>
 
+#define SND_BUFFER_DATA_TYPE      float
+#define PROCESS_BUFFER_DATA_TYPE  double
+
+#define	SND_FRAME_LEN        65536
+#define SND_UNIT_LEN         (sizeof(SND_BUFFER_DATA_TYPE) * SND_FRAME_LEN)
+#define DEFAULT_SAMPLE_RATE  8000
+#define RW_FRAME_COUNT       1024
+#define LEFT_CHANNEL         0
+#define RIGHT_CHANNEL        1
+
 class SndException : public std::exception
 {
 public:
 	SndException(int err_ = 0)
-		: err(err_), msg(std::string("Sound error: ") + err_to_str(err_))
+	: err(err_), msg(std::string("Sound error: ") + err_to_str(err_))
 	{ }
 	SndException(const char* msg_)
-		: err(1), msg(msg_)
+	: err(1), msg(msg_)
 	{ }
 	SndException(int err_, const std::string& msg_) : err(err_), msg(msg_) { }
 	virtual ~SndException() throw() { }
@@ -56,17 +67,21 @@ protected:
 	std::string	msg;
 };
 
-#define SNDFILE_CHANNELS 1
-
 class SoundFile {
 public:
-enum {READ, WRITE};
+	enum {READ, WRITE};
 
 protected:
 	SNDFILE* snd_file;
 	int		format;
 	int		sample_frequency;
 	int		mode;
+	int     no_of_channels;
+
+	size_t read_frame_count;
+	size_t read_unit_count;
+	size_t write_frame_count;
+	size_t write_unit_count;
 
 	SF_INFO read_info;
 	SF_INFO write_info;
@@ -77,9 +92,10 @@ protected:
 	SRC_DATA	*writ_src_data;
 	SRC_DATA	*read_src_data;
 
-	float		*src_out_buffer;
-	float		*src_inp_buffer;
-	float		*inp_pointer;
+	size_t src_io_buffer_units;
+	SND_BUFFER_DATA_TYPE * src_out_buffer;
+	SND_BUFFER_DATA_TYPE * src_inp_buffer;
+	SND_BUFFER_DATA_TYPE * inp_pointer;
 
 	std::string fname;
 
@@ -88,19 +104,25 @@ protected:
 public:
 	SoundFile(std::string _fname = "", int _mode = READ, int freq = 8000);
 	~SoundFile();
+	bool    init_src(int);
+	void    free_src(void);
+	inline SND_BUFFER_DATA_TYPE * inc_frame(SND_BUFFER_DATA_TYPE *frame_pointer);
+	inline SND_BUFFER_DATA_TYPE * inc_frame(SND_BUFFER_DATA_TYPE *frame_pointer, size_t frames);
+
 	int     open(std::string _fname, int _mode);
 	void    close();
 
-	size_t  write(float *buf, size_t count);
-	size_t  read(float *buf, size_t count);
+	size_t  write(SND_BUFFER_DATA_TYPE *buf, size_t count);
+	size_t  read(SND_BUFFER_DATA_TYPE *buf, size_t count);
 
-	size_t  write(double *buf, size_t count);
-	size_t  read(double *buf, size_t count);
+	size_t  write(PROCESS_BUFFER_DATA_TYPE *buf, size_t count);
+	size_t  read(PROCESS_BUFFER_DATA_TYPE *buf, size_t count);
 
 	void rewind();
 	size_t size();
 
-//	size_t  Write_stereo(double *, double *, size_t);
+	int io_channels(void) { return no_of_channels; }
+	//	size_t  Write_stereo(double *, double *, size_t);
 
 };
 

@@ -34,46 +34,77 @@ extern std::string BaseDir;
 extern std::string HomeDir;
 extern std::string fname_in;
 extern std::string fname_out;
+extern std::string fname_out;
+extern std::string input_filename;
+extern std::string output_filename;
 
 extern csvdb simulations;
 extern SIM sim_test;
 extern _vals sim_vals;
+extern float file_sample_rate;
 
-extern void clean_exit();
+extern void clean_exit(void);
 extern int parse_args(int argc, char **argv, int& idx);
 
-extern void select_simulation();
-extern void add_simulation();
-extern void run_simulation();
+extern void select_simulation(void);
+extern void add_simulation(void);
+extern void run_simulation(void);
 
-extern void tbl_simulations_selected();
-extern void cancel_selection();
+extern void tbl_simulations_selected(void);
+extern void cancel_selection(void);
 extern void delete_selection(int);
 extern void update_selection(int);
 extern void select_entry(int);
 
-extern void load_simulation_set();
-extern void save_simulation_set();
-extern void save_simulation_set_as();
-extern void populate_batch_selector();
-extern void cancel_batch_process();
-extern void batch_process_items();
-extern void open_batch_process_dialog();
-extern void clear_all_simulation();
-extern void select_all_simulations();
-extern void abort_simulation();
-extern void clear_main_dialog(void *d = 0);
+extern void load_simulation_set(void);
+extern void save_simulation_set(void);
+extern void save_simulation_set_as(void);
+extern void populate_batch_selector(void);
+extern void cancel_batch_process(void);
+extern void batch_process_items(void);
+extern void open_batch_process_dialog(void);
+extern void clear_all_simulation(void);
+extern void select_all_simulations(void);
+extern void abort_simulation(void);
+extern void clear_main_dialog(void *);
+extern void display_tx_duration_dialog(void);
+extern void close_tx_duration_dialog(void);
+extern void AWGNseries_dialog(void);
+extern void AWGNseries_process(void);
+extern void cancel_AWGNseries(void);
 
-extern void AWGNseries_dialog();
-extern void AWGNseries_process();
-extern void cancel_AWGNseries();
+extern void choose_batch_folder(void);
+extern void output_folder_select(void);
+extern void close_output_dialog(void);
 
-extern void choose_batch_folder();
-extern void output_folder_select();
-extern void close_output_dialog();
+extern void about(void);
+extern void guideURL(void);
 
-extern void about();
-extern void guideURL();
+// Modem Series
+extern void start_modem(void);
+extern void end_modem(void);
+extern void enable_ModemSeries(void);
+extern void disable_ModemSeries(void);
+extern void close_ModemSeries(void);
+extern void query_ModemSeries();
+extern bool populate_modem_list(void);
+extern bool modem_list_populated;
+extern void ModemSeries_dialog();
+extern void process_AWGN_series_modem_series(void);
+extern void process_run_simulation_modem_series(void);
+extern void process_batch_items_modem_series(void);
+extern void high_speed(void);
+// End Modem Series
 
-
-
+void ip_address_text_field(void);
+void ip_port_no_text_field(void);
+void save_xmlrpc_ip_address_dialog(void);
+void close_xmlrpc_ip_address_dialog(void);
+void XmlRpc_IP_dialog(void);
+void select_models_dialog(void);
+void cb_select_models(void);
+void select_model_list(void);
+void close_models_dialog(void);
+void cb_awgn_series_lower(void);
+void cb_awgn_series_upper(void);
+void cb_awgn_series_step(void);

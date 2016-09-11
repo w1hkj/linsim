@@ -34,7 +34,7 @@
 
 // pathsim original
 
-class CPath  
+class CPath
 {
 public:
 	void CalcPath( cmplx* pIn, cmplx* pOut);

@@ -1,8 +1,9 @@
 // ----------------------------------------------------------------------------
-// Copyright (C) 2014
+// Copyright (C) 2014, 2016
 //              David Freese, W1HKJ
+//              Robert Stiles, KK5VD
 //
-// This file is part of flmsg
+// This file is part of linsim
 //
 // flrig is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,6 +24,40 @@
 
 #include <string>
 #include "config.h"
+
+// Allocate and clear memory class template. Intended use for temporary
+// memory allocation at the function level without having to keep track of
+// freeing memory at every return statement.
+
+template <typename DATA_TYPE>
+class Allocate {
+private:
+	DATA_TYPE * pointer;
+	size_t no_of_bytes;
+public:
+	Allocate(void) {
+		pointer = (DATA_TYPE *)0; no_of_bytes = 0;
+	}
+
+	~Allocate(void) {
+		if(pointer) {
+			if(no_of_bytes)
+				memset(pointer, 0, no_of_bytes);
+			delete [] pointer;
+		}
+		pointer     = (DATA_TYPE *)0;
+		no_of_bytes = 0;
+	}
+
+	DATA_TYPE * allocate(size_t units) {
+		pointer = new DATA_TYPE[units];
+		no_of_bytes = sizeof(DATA_TYPE) * units;
+		if(pointer && no_of_bytes)
+			memset(pointer, 0, no_of_bytes);
+		return pointer;
+	}
+};
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,12 +91,12 @@ extern "C" {
 #		define full_memory_barrier() asm volatile ("lock; addl $0,0(%%esp)":::"memory")
 #		define read_memory_barrier() full_memory_barrier()
 #		define write_memory_barrier() full_memory_barrier()
-/*
- These would be faster on SSE2-capable processors:
-#		define full_memory_barrier() asm volatile ("mfence":::"memory")
-#		define read_memory_barrier() asm volatile ("lfence":::"memory")
-#		define write_memory_barrier() asm volatile ("sfence":::"memory")
-*/
+	/*
+	 These would be faster on SSE2-capable processors:
+	 #		define full_memory_barrier() asm volatile ("mfence":::"memory")
+	 #		define read_memory_barrier() asm volatile ("lfence":::"memory")
+	 #		define write_memory_barrier() asm volatile ("sfence":::"memory")
+	 */
 #	elif defined(__ppc__) || defined(__powerpc__) || defined(__PPC__)
 #		define full_memory_barrier() asm volatile("sync":::"memory")
 #		define read_memory_barrier() full_memory_barrier()
@@ -79,7 +114,7 @@ extern "C" {
 #	define write_memory_barrier() full_memory_barrier()
 #endif
 
-/* http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html */
+	/* http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html */
 #if defined(__GNUC__) && (__GNUC__ >= 3)
 #	define likely(x)	__builtin_expect (!!(x), 1)
 #	define unlikely(x)  __builtin_expect (!!(x), 0)
@@ -124,29 +159,29 @@ extern "C" {
 
 #include <stddef.h>
 
-const__ uint32_t ceil2(uint32_t n);
-const__ uint32_t floor2(uint32_t n);
+	const__ uint32_t ceil2(uint32_t n);
+	const__ uint32_t floor2(uint32_t n);
 
 #if !HAVE_STRCASESTR
-char* strcasestr(const char* haystack, const char* needle);
+	char* strcasestr(const char* haystack, const char* needle);
 #endif
 
 #if !HAVE_STRLCPY
-size_t strlcpy(char* dest, const char* src, size_t size);
+	size_t strlcpy(char* dest, const char* src, size_t size);
 #endif
 
-int set_cloexec(int fd, unsigned char v);
-int set_nonblock(int fd, unsigned char v);
-int set_nodelay(int fd, unsigned char v);
-int get_bufsize(int fd, int dir, int* len);
-int set_bufsize(int fd, int dir, int len);
+	int set_cloexec(int fd, unsigned char v);
+	int set_nonblock(int fd, unsigned char v);
+	int set_nodelay(int fd, unsigned char v);
+	int get_bufsize(int fd, int dir, int* len);
+	int set_bufsize(int fd, int dir, int len);
 
-unsigned long ver2int(const char* version);
+	unsigned long ver2int(const char* version);
 
-void save_signals(void);
-void restore_signals(void);
+	void save_signals(void);
+	void restore_signals(void);
 
-void MilliSleep(long msecs);
+	void MilliSleep(long msecs);
 
 #ifdef __cplusplus
 } // extern "C"
@@ -172,9 +207,9 @@ void MilliSleep(long msecs);
 #include <string.h>
 deprecated__ typeof(sprintf) sprintf;
 /* there are far too many of these in the qrz code
-deprecated__ typeof(strcpy) strcpy;
-deprecated__ typeof(strcat) strcat;
-*/
+ deprecated__ typeof(strcpy) strcpy;
+ deprecated__ typeof(strcat) strcat;
+ */
 #endif
 
 #ifdef __WIN32__
@@ -203,8 +238,8 @@ extern std::string wordwrap(std::string &s, int cnt);
 #endif /* UTIL_H */
 
 /*
-Local Variables:
-mode: c++
-c-file-style: "linux"
-End:
-*/
+ Local Variables:
+ mode: c++
+ c-file-style: "linux"
+ End:
+ */

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
-<meta name="generator" content="AsciiDoc 8.6.6" />
+<meta name="generator" content="AsciiDoc 8.6.9" />
 <title>Guide to linsim</title>
 <style type="text/css">
 /* Shared CSS for AsciiDoc xhtml11 and html5 backends */
@@ -87,9 +87,15 @@ ul, ol, li > p {
 ul > li     { color: #aaa; }
 ul > li > * { color: black; }
 
-pre {
+.monospaced, code, pre {
+  font-family: "Courier New", Courier, monospace;
+  font-size: inherit;
+  color: navy;
   padding: 0;
   margin: 0;
+}
+pre {
+  white-space: pre-wrap;
 }
 
 #author {
@@ -219,7 +225,7 @@ div.exampleblock > div.content {
 }
 
 div.imageblock div.content { padding-left: 0; }
-span.image img { border-style: none; }
+span.image img { border-style: none; vertical-align: text-bottom; }
 a.image:visited { color: white; }
 
 dl {
@@ -349,7 +355,7 @@ div.colist td img {
   margin-bottom: 0.1em;
 }
 
-div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -407,17 +413,13 @@ span.underline { text-decoration: underline; }
 span.overline { text-decoration: overline; }
 span.line-through { text-decoration: line-through; }
 
+div.unbreakable { page-break-inside: avoid; }
+
 
 /*
  * xhtml11 specific
  *
  * */
-
-tt {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 div.tableblock {
   margin-top: 1.0em;
@@ -451,12 +453,6 @@ div.tableblock > table[frame="vsides"] {
  * html5 specific
  *
  * */
-
-.monospaced {
-  font-family: monospace;
-  font-size: inherit;
-  color: navy;
-}
 
 table.tableblock {
   margin-top: 1.0em;
@@ -537,6 +533,8 @@ body.manpage div.sectionbody {
 @media print {
   body.manpage div#toc { display: none; }
 }
+
+
 </style>
 <script type="text/javascript">
 /*<![CDATA[*/
@@ -581,7 +579,7 @@ toc: function (toclevels) {
 
   function tocEntries(el, toclevels) {
     var result = new Array;
-    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    var re = new RegExp('[hH]([1-'+(toclevels+1)+'])');
     // Function that scans the DOM tree for header elements (the DOM2
     // nodeIterator API would be a better technique but not supported by all
     // browsers).
@@ -610,7 +608,7 @@ toc: function (toclevels) {
   var i;
   for (i = 0; i < toc.childNodes.length; i++) {
     var entry = toc.childNodes[i];
-    if (entry.nodeName == 'div'
+    if (entry.nodeName.toLowerCase() == 'div'
      && entry.getAttribute("class")
      && entry.getAttribute("class").match(/^toclevel/))
       tocEntriesToRemove.push(entry);
@@ -656,7 +654,7 @@ footnotes: function () {
   var entriesToRemove = [];
   for (i = 0; i < noteholder.childNodes.length; i++) {
     var entry = noteholder.childNodes[i];
-    if (entry.nodeName == 'div' && entry.getAttribute("class") == "footnote")
+    if (entry.nodeName.toLowerCase() == 'div' && entry.getAttribute("class") == "footnote")
       entriesToRemove.push(entry);
   }
   for (i = 0; i < entriesToRemove.length; i++) {
@@ -780,7 +778,7 @@ Design and Theory" by Tom McDermott.</p></div>
 </div>
 <div class="sect2">
 <h3 id="_general_description">1.2. General description</h3>
-<div class="paragraph"><p>Linsim is designed to read and then add path simulation to any monophonic wav file recorded at any sampling rate.  It works particularly well with files that were created using fldigi&#8217;s audio capture and audio generate functions.  The entire wav file will be saved to computer memory and then duplicated during the signal processing.  The user should try to keep the length of the wav file at 20 Mg or less, but the author has tested some 200 Mg files on both Linux and Windows-8 without causing a program fault.  These files were original VOAR broadcasts of about 30 minutes duration.  The objective of this type of simulation is to finally measure the character error rate (CER) and bit error rate (BER) of a specific modem type and decoder design.  For most modems a sequence of 1000 characters provides a sufficient level of confidence in the CER measurment.</p></div>
+<div class="paragraph"><p>Linsim is designed to read and then add path simulation to any single or dual channel wav file recorded at any sampling rate.  It works particularly well with files that were created using fldigi&#8217;s audio capture and audio generate functions.  The entire wav file will be saved to computer memory and then duplicated during the signal processing.  The user should try to keep the length of the wav file at 20 Mg or less, but the author has tested some 200 Mg files on both Linux and Windows-8 without causing a program fault.  These files were original VOAR broadcasts of about 30 minutes duration.  The objective of this type of simulation is to finally measure the character error rate (CER) and bit error rate (BER) of a specific modem type and decoder design.  For most modems a sequence of 1000 characters provides a sufficient level of confidence in the CER measurement.</p></div>
 <div class="paragraph"><p>Simulations include path delay, doppler, frequency shift and band limited Gaussian white noise.  All simulations are constrained to a 3000 Hz bandwidth.  The input signal is filtered by a FIR bandpass filter (400 - 3400 Hz).</p></div>
 <div class="admonitionblock">
 <table><tr>
@@ -788,7 +786,28 @@ Design and Theory" by Tom McDermott.</p></div>
 <div class="title">Note</div>
 </td>
 <td class="content">
+<div class="paragraph"><p>With dual channel audio the left channel is processed and the right channel is cleared when the .wav file is saved. Output files will contain the same number of channels as the input files (1 or 2).</p></div>
+</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
 <div class="paragraph"><p>Your input signal should not extend beyond these limits.</p></div>
+</td>
+</tr></table>
+</div>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="title">Paired Programs</div>
+<div class="paragraph"><p>With the integration of XMLRPC into LinSim, new XMLRPC commands where created to enable proper FLDIGI interaction. As of this writing FLDIGI version 3.23.15 or newer is required to function correctly with this version of LinSim.</p></div>
 </td>
 </tr></table>
 </div>
@@ -1217,6 +1236,18 @@ select lower, upper, step for a series of simulation runs
 </li>
 <li>
 <p>
+Modem Series - Open Modem Series Processing Dialog
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+select a series of modems to process.
+</p>
+</li>
+</ul></div>
+</li>
+<li>
+<p>
 Choose output folder
 </p>
 <div class="ulist"><ul>
@@ -1277,6 +1308,18 @@ Same as input (default)
 <li>
 <p>
 48000
+</p>
+</li>
+</ul></div>
+<div class="ulist"><div class="title">Config</div><ul>
+<li>
+<p>
+XMLRPC - IP address and port number assignment.
+</p>
+</li>
+<li>
+<p>
+TX Duration - Set the minimum number of seconds of transmit time.
 </p>
 </li>
 </ul></div>
@@ -1504,9 +1547,68 @@ Cancel         - close the batch process dialog
 </div>
 </div>
 <div class="sect1">
-<h2 id="ref-credits">10. Credits</h2>
+<h2 id="ref-modems">10. Modem Series Processing</h2>
 <div class="sectionbody">
-<div class="paragraph"><p>Copyright &#169; 2014 David Freese, <tt>W1HKJ</tt>.</p></div>
+<div class="paragraph"><p>With the integration of XMLRPC commands LinSim can communicate with FLDIGI. This allows for the automatic recording and playback of .wav files.  Modem series operates with the 3 available operation modes AWGN Series, Batch, and Custom.</p></div>
+<div class="paragraph"><p>When Modem Series is selected no input or output file names are required. File names are created based on the modem name and the simulation type. At the termination of a modem simulation a text file is created with the modems name and contains recorded text. The recorded content is compared with the expected data and a simple report indicates if matches are found.</p></div>
+<div class="paragraph"><p>Modem Series dialog box contains two identical list of modems. The Start Modem as you would expect, is the first modem to be processed and continues until End Modem is reached.</p></div>
+<div class="paragraph"><p>Highspeed check box disables any FLDIGI audio file processing time delay component. This in effect will process the file as fast as your computer can manage.</p></div>
+<div class="paragraph"><p>Enable or Disable Modem Series by selecting the appropriate button. When disabled no automated interactions are performed with FLDIGI.</p></div>
+<div class="paragraph"><p>In case you started LinSim before FLDIGI, selecting the Query button will obtain a list of modems. It&#8217;s normally loads without user interaction if FLDIGI is run before LinSim.</p></div>
+<div class="paragraph"><p>Selecting Close dismisses the dialog box.</p></div>
+<div class="paragraph"><p>Data collection between LinSim and FLDIGI is based on character counts. Character counts are based on the particular modem and the requested TX duration. It’s advised that FLDIGI remained connected to a radio for a source of noise as the modem may stall waiting for signals if the input contains little noise and no signal. Make sure TX is disabled or output FLDIGI TX audio to one of the computers audio input devices while retaining the RX audio from the radio.</p></div>
+<div class="paragraph"><p>You may need to turn on AFC on the front of FLDIGI when playing back processed audio files. One of the variables is frequency shift. The automatic playback of files is relatively quick when compare to processing the files by hand and you may not have time to place the RX cursor on the correct waterfall location to compensate. Highspeed option disables the waterfall, this will prevent the placement of the RX cursor. Highspeed option is best used when AWGN Series are in play as the processed audio will contain little or no frequency shift.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_operating_modem_series">11. Operating - Modem Series</h2>
+<div class="sectionbody">
+<div class="ulist"><ul>
+<li>
+<p>
+Execute FLDIGI and set TX cursor at 1900 Hz center frequency.
+</p>
+</li>
+<li>
+<p>
+Select Menu item <em>Simulations&#8594;Choose output folder</em>, Press <em>Select Folder</em>, Select destination folder/directory, Press <em>Close</em>.
+</p>
+</li>
+<li>
+<p>
+Select Menu item <em>Simulations&#8594;Modem Series</em>, Select Enable, Start Modem, End Modem, Close
+</p>
+</li>
+<li>
+<p>
+Simulation Processing Types
+</p>
+<div class="ulist"><ul>
+<li>
+<p>
+Batch - Select Menu item <em>Simulations&#8594;Batch</em>, Check 1 or more Simulations, press Process.
+</p>
+</li>
+<li>
+<p>
+AWGN Series - Select Menu item <em>Simulations&#8594;AWGN Series</em>, Set upper and lower SNR values, step rate, press Process.
+</p>
+</li>
+<li>
+<p>
+Custom - Configure LinSim front panel options Path and/or AWGN, Press Run Test.
+</p>
+</li>
+</ul></div>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ref-credits">12. Credits</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Copyright &#169; 2014 David Freese, W1HKJ, Principle Author.</p></div>
+<div class="paragraph"><p>Copyright &#169; 2016 Robert Stiles, KK5VD, Author: XMLRPC communications and dual channel audio.</p></div>
 <div class="paragraph"><p>Based on AE4JY, Moe Wheatley&#8217;s PathSim.</p></div>
 <div class="paragraph"><p>License GPLv3+: <a href="http://www.gnu.org/licenses/gpl.html">GNU GPL version 3 or later</a>.</p></div>
 </div>
@@ -1515,7 +1617,7 @@ Cancel         - close the batch process dialog
 <div id="footnotes"><hr /></div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2014-01-08 17:43:50 CST
+Last updated 2016-10-13 21:56:45 CDT
 </div>
 </div>
 </body>

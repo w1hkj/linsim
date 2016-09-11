@@ -90,7 +90,7 @@ void CPath::InitPath( double Spread, double Offset, int blocksize, int numpaths,
 		m_LPGain = sqrt(12.8/(4.0*m_Spread*KGNB) );
 	}
 	else if( (m_Spread >= 0.0) && (m_Spread < 0.1) ) {
-//here if spread<.1 so will not use any spread just offset
+		//here if spread<.1 so will not use any spread just offset
 		m_NoiseSampRate = RATE_320;
 		m_LPGain = 1.0;
 	}
@@ -121,14 +121,14 @@ void CPath::InitPath( double Spread, double Offset, int blocksize, int numpaths,
 //////////////////////////////////////////////////////////////////////
 void CPath::CalcPath(cmplx *pIn, cmplx *pOut)
 {
-int i,j;
-cmplx acc;
-cmplx tmp;
-const double* Kptr;
-cmplx* Firptr;
-cmplx offset;
+	int i,j;
+	cmplx acc;
+	cmplx tmp;
+	const double* Kptr;
+	cmplx* Firptr;
+	cmplx offset;
 
-// if path is not active just zero the output
+	// if path is not active just zero the output
 	if (!m_PathActive) {
 		for (i = 0; i < m_BlockSize; i++) pOut[i].x = pOut[i].y = 0.0;
 		return;
@@ -137,10 +137,10 @@ cmplx offset;
 	for (i = 0; i < m_BlockSize; i++) {
 		if (m_NoiseSampRate == RATE_12_8) {
 			if (m_Indx%(5*5*5*5) == 0) {
-//generate noise samples at 12.8Hz rate
+				//generate noise samples at 12.8Hz rate
 				acc = MakeGaussianDelaySample();
 
-//SweepGenCpx(  &acc, 12.8, 0.0, 6.4, 0.016 );
+				//SweepGenCpx(  &acc, 12.8, 0.0, 6.4, 0.016 );
 
 				j = m_FirState0/INTP_VALUE;
 				m_pQue0[j].x = acc.x;
@@ -150,7 +150,7 @@ cmplx offset;
 		if (m_NoiseSampRate <= RATE_64) {
 			if (m_Indx%(5*5*5) == 0) {
 				if (m_NoiseSampRate == RATE_64) {
-//generate noise samples at 64Hz rate
+					//generate noise samples at 64Hz rate
 					acc = MakeGaussianDelaySample();
 				} else {
 					acc.x = 0.0; acc.y = 0.0;
@@ -164,14 +164,14 @@ cmplx offset;
 					if (--m_FirState0 < 0)
 						m_FirState0 = INTP_FIR_SIZE-1;
 				}
-//SweepGenCpx(  &acc, 64, 0.0, 32.0, 0.08 );
+				//SweepGenCpx(  &acc, 64, 0.0, 32.0, 0.08 );
 				j = m_FirState1/INTP_VALUE;
 				m_pQue1[j].x = acc.x;
 				m_pQue1[j].y = acc.y;
 			}
 		}
 		if (m_Indx%(5*5) == 0) {
-//interpolate/upsample x5
+			//interpolate/upsample x5
 			if (m_NoiseSampRate == RATE_320) {
 				acc = MakeGaussianDelaySample();
 			} else {
@@ -186,13 +186,13 @@ cmplx offset;
 				if (--m_FirState1 < 0)
 					m_FirState1 = INTP_FIR_SIZE-1;
 			}
-//SweepGenCpx(  &acc, 320, 0.0, 160.0, 0.4 );
+			//SweepGenCpx(  &acc, 320, 0.0, 160.0, 0.4 );
 			j = m_FirState2/INTP_VALUE;
 			m_pQue2[j].x = acc.x;
 			m_pQue2[j].y = acc.y;
 		}
 		if (m_Indx%(5) == 0) {
-//interpolate/upsample x5
+			//interpolate/upsample x5
 			acc.x = 0.0; acc.y = 0.0;
 			Firptr = m_pQue2;
 			Kptr = X5IntrpFIRCoef+INTP_FIR_SIZE-m_FirState2;
@@ -203,7 +203,7 @@ cmplx offset;
 			}
 			if (--m_FirState2 < 0)
 				m_FirState2 = INTP_FIR_SIZE-1;
-//SweepGenCpx(  &acc, 1600, 0.0, 800.0, 2 );
+			//SweepGenCpx(  &acc, 1600, 0.0, 800.0, 2 );
 			j = m_FirState3/INTP_VALUE;
 			m_pQue3[j].x = acc.x;
 			m_pQue3[j].y = acc.y;
@@ -249,13 +249,13 @@ cmplx offset;
 /////////////////////////////////////////////////////////////////
 cmplx CPath::MakeGaussianDelaySample()
 {
-double u1;
-double u2;
-double r;
-cmplx val;
+	double u1;
+	double u2;
+	double r;
+	cmplx val;
 	if( m_Spread >= 0.1 ) {
-// Generate two uniform random numbers between -1 and +1
-// that are inside the unit circle
+		// Generate two uniform random numbers between -1 and +1
+		// that are inside the unit circle
 		do {
 			u1 = 1.0 - 2.0 * (double)rand()/(double)RAND_MAX ;
 			u2 = 1.0 - 2.0 * (double)rand()/(double)RAND_MAX ;
@@ -263,19 +263,19 @@ cmplx val;
 		} while(r >= 1.0 || r == 0.0);
 		val.x = m_LPGain*u1*sqrt(-2.0*log(r)/r);
 		val.y = m_LPGain*u2*sqrt(-2.0*log(r)/r);
-
-//SweepGenCpx(  &val, 320, 0.0, 30*5, 30*5/200.0);
-
-// Now LP filter the Gaussian samples
+		
+		//SweepGenCpx(  &val, 320, 0.0, 30*5, 30*5/200.0);
+		
+		// Now LP filter the Gaussian samples
 		val = m_pLPFIR->CalcFilter(val);
 	} else {
-//if not using any spread
+		//if not using any spread
 		val.x = m_LPGain;
 		val.y = 0;
 	}
-
-//gDebug1 = CalcCpxRMS( val, 288000);
-//CalcCpxSweepRMS( val, 500);
-
+	
+	//gDebug1 = CalcCpxRMS( val, 288000);
+	//CalcCpxSweepRMS( val, 500);
+	
 	return val;
 }

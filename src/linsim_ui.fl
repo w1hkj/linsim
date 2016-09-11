@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 header_name {.h} 
 code_name {.cxx}
 decl {\#include <string>} {private local
@@ -20,16 +20,18 @@ decl {\#include "sim_vals.h"} {private local
 decl {\#include "sim.h"} {private local
 } 
 
-Function {make_linsim_window()} {open
-} {
+decl {\#include "configure.h"} {private local
+} 
+
+Function {make_linsim_window()} {} {
   code {fname_in.clear();
 fname_out.clear();} {}
   Fl_Window linsim_window {
-    label {linsim v1.0.0} open
-    xywh {783 32 340 365} type Double visible
+    label LinSim open
+    xywh {57 68 388 399} type Double visible
   } {
     Fl_Menu_Bar {} {open
-      xywh {0 0 290 22}
+      xywh {0 0 325 22}
     } {
       Submenu {} {
         label {&File} open
@@ -51,7 +53,7 @@ fname_out.clear();} {}
           tooltip {Save as a new set} xywh {0 0 36 21} divider
         }
         MenuItem {} {
-          label {E&xit}
+          label {&Exit}
           callback {clean_exit();}
           xywh {0 0 36 21}
         }
@@ -75,6 +77,11 @@ fname_out.clear();} {}
           callback {AWGNseries_dialog();}
           xywh {0 0 36 21} divider
         }
+        MenuItem mnuModemSeries {
+          label {&Modem Series}
+          callback {ModemSeries_dialog();}
+          tooltip {Add current simulation to list} xywh {10 10 36 21} divider
+        }
         MenuItem mnu_choose_folder {
           label {Choose ouput folder}
           callback {choose_batch_folder();}
@@ -82,7 +89,7 @@ fname_out.clear();} {}
         }
       }
       Submenu {} {
-        label {&Samplerate} open
+        label {Sample&rate} open
         tooltip {Set output sampling rate} xywh {0 0 70 21}
       } {
         MenuItem mnu_sr_as_input {
@@ -118,9 +125,24 @@ fname_out.clear();} {}
           xywh {50 50 36 21} type Radio
         }
       }
+      Submenu {} {
+        label {&Config} open
+        xywh {10 10 70 21}
+      } {
+        MenuItem mnu_xmlrpc_ip_address {
+          label XMLRPC
+          callback {XmlRpc_IP_dialog();}
+          tooltip {Add current simulation to list} xywh {20 20 36 21} divider
+        }
+        MenuItem mnu_select_tx_duration {
+          label {TX Duration}
+          callback {display_tx_duration_dialog();}
+          xywh {20 20 36 21}
+        }
+      }
     }
     Fl_Menu_Bar {} {open
-      xywh {291 0 50 22}
+      xywh {325 0 50 22}
     } {
       Submenu {} {
         label {&Help} open
@@ -140,21 +162,21 @@ fname_out.clear();} {}
     }
     Fl_Button btn_select_input {
       label Input
-      callback {fname_in = file_name("input.wav");
+      callback {input_filename = fname_in = file_name("input.wav");
 txt_input_file->value(fname_in.c_str());}
       xywh {3 26 60 24}
     }
     Fl_Output txt_input_file {
-      xywh {65 26 270 24}
+      xywh {65 26 310 24}
     }
     Fl_Button btn_select_output {
       label Output
-      callback {fname_out = file_name("output.wav");
+      callback {output_filename = fname_out = file_name("output.wav");
 txt_output_file->value(fname_out.c_str());}
       xywh {4 55 60 24}
     }
     Fl_Output txt_output_file {
-      xywh {65 55 270 24}
+      xywh {65 55 310 24}
     }
     Fl_Button btn_select_simulation {
       label {Simul'}
@@ -162,110 +184,110 @@ txt_output_file->value(fname_out.c_str());}
       tooltip {Select simulation} xywh {4 84 60 24}
     }
     Fl_Input txt_simulation {
-      xywh {65 84 270 24}
+      xywh {65 84 310 24}
     }
     Fl_Output txt_simulations_filename {
       label {Models:}
-      tooltip {Set of simulation models in use} xywh {65 113 270 24}
+      tooltip {Set of simulation models in use} xywh {65 113 310 24}
     }
     Fl_Group {} {open
-      xywh {8 142 328 51} box ENGRAVED_FRAME
+      xywh {10 172 367 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button p0_on {
         label {Path 1}
         callback {sim_vals.p0.active = o->value();}
-        xywh {22 158 70 19} down_box DOWN_BOX
+        xywh {24 188 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.p0.active);}
       }
       Fl_Input inp_spread0 {
         label Spread
         callback {sim_vals.p0.spread = atof(o->value());}
-        tooltip {spread in Hz (1 sigma)} xywh {180 164 70 24} type Float align 1
+        tooltip {spread in Hz (1 sigma)} xywh {207 194 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p0.spread);o->value(val);}
       }
       Fl_Input inp_offset0 {
         label Offset
         callback {sim_vals.p0.offset = atof(o->value());}
-        tooltip {frequency offset in Hz} xywh {255 164 70 24} type Float align 1
+        tooltip {frequency offset in Hz} xywh {297 194 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p0.offset);o->value(val);}
       }
     }
     Fl_Group {} {open
-      xywh {9 198 328 51} box ENGRAVED_FRAME
+      xywh {11 228 366 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button p1_on {
         label {Path 2}
         callback {sim_vals.p1.active = o->value();}
-        xywh {23 214 70 19} down_box DOWN_BOX
+        xywh {25 244 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.p1.active);}
       }
       Fl_Input inp_delay1 {
         label Delay
         callback {sim_vals.d.delay1 = atof(o->value());}
-        tooltip {delay in milliseconds} xywh {101 217 70 25} type Float align 1
+        tooltip {delay in milliseconds} xywh {117 250 70 25} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.d.delay1);o->value(val);}
       }
       Fl_Input inp_spread1 {
         label Spread
         callback {sim_vals.p1.spread = atof(o->value());}
-        tooltip {spread in Hz (1 sigma)} xywh {180 217 70 24} type Float align 1
+        tooltip {spread in Hz (1 sigma)} xywh {207 251 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p1.spread);o->value(val);}
       }
       Fl_Input inp_offset1 {
         label Offset
         callback {sim_vals.p1.offset = atof(o->value());}
-        tooltip {frequency offset in Hz} xywh {255 217 70 24} type Float align 1
+        tooltip {frequency offset in Hz} xywh {297 251 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p1.offset);o->value(val);}
       }
     }
     Fl_Group {} {open
-      xywh {9 254 328 51} box ENGRAVED_FRAME
+      xywh {11 284 366 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button p2_on {
         label {Path 3}
         callback {sim_vals.p2.active = o->value();}
-        xywh {23 270 70 19} down_box DOWN_BOX
+        xywh {25 300 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.p2.active);}
       }
       Fl_Input inp_delay2 {
         label Delay
         callback {sim_vals.d.delay2 = atof(o->value());}
-        tooltip {delay in milliseconds} xywh {101 274 70 25} type Float align 1
+        tooltip {delay in milliseconds} xywh {117 304 70 25} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.d.delay2);o->value(val);}
       }
       Fl_Input inp_spread2 {
         label Spread
         callback {sim_vals.p2.spread = atof(o->value());}
-        tooltip {spread in Hz (1 sigma)} xywh {180 274 70 24} type Float align 1
+        tooltip {spread in Hz (1 sigma)} xywh {207 304 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p2.spread);o->value(val);}
       }
       Fl_Input inp_offset2 {
         label Offset
         callback {sim_vals.p1.offset = atof(o->value());}
-        tooltip {frequency offset in Hz} xywh {255 274 70 24} type Float align 1
+        tooltip {frequency offset in Hz} xywh {297 304 70 24} type Float align 1
         code0 {char val[20]; snprintf(val, sizeof(val), "%4.2f", sim_vals.p2.offset);o->value(val);}
       }
     }
     Fl_Group {} {open
-      xywh {9 309 166 51} box ENGRAVED_FRAME
+      xywh {10 339 186 51} box ENGRAVED_FRAME
     } {
       Fl_Check_Button inp_AWGN_on {
         label AWGN
         callback {sim_vals.AWGN_on = o->value();}
-        tooltip {Gaussian noise on/off} xywh {23 325 70 19} down_box DOWN_BOX
+        tooltip {Gaussian noise on/off} xywh {24 355 70 19} down_box DOWN_BOX
         code0 {o->value(sim_vals.AWGN_on);}
       }
       Fl_Input inp_AWGN_rms {
         label {S/N}
         callback {sim_vals.snrdb = atof(o->value());}
-        tooltip {s/n in dB} xywh {100 329 70 25} type Float align 1
+        tooltip {s/n in dB} xywh {116 359 70 25} type Float align 1
         code0 {char val[20];}
         code1 {snprintf(val, sizeof(val), "%4.1f", sim_vals.snrdb);}
         code2 {o->value(val);}
       }
     }
     Fl_Progress progress {
-      xywh {179 311 153 21}
+      xywh {10 145 365 20}
       code0 {\#include <FL/Fl_Progress.H>}
       code1 {o->value(0);}
       code2 {o->minimum(0); o->maximum(1);}
@@ -274,11 +296,11 @@ txt_output_file->value(fname_out.c_str());}
     Fl_Button btn_test {
       label {Run Test}
       callback {run_simulation();}
-      xywh {261 336 70 24}
+      xywh {305 361 70 24}
     }
     Fl_Button btn_abort {
       label ABORT
-      callback {abort_simulation();} selected
+      callback {abort_simulation();}
       xywh {261 336 70 24} labelfont 1 labelcolor 1 hide
     }
     Fl_Group lbl_batch {
@@ -288,8 +310,7 @@ txt_output_file->value(fname_out.c_str());}
   }
 } 
 
-Function {make_batch_selector_dialog()} {open
-} {
+Function {make_batch_selector_dialog()} {} {
   Fl_Window {} {
     label {Batch Processing} open
     xywh {1203 50 340 280} type Double hide resizable
@@ -320,8 +341,7 @@ Function {make_batch_selector_dialog()} {open
   }
 } 
 
-Function {make_selector_dialog()} {open
-} {
+Function {make_selector_dialog()} {} {
   Fl_Window {} {
     label {Select Simulation Model} open
     xywh {1179 23 340 270} type Double hide resizable
@@ -353,39 +373,93 @@ Function {make_selector_dialog()} {open
   }
 } 
 
-Function {make_AWGNseries_dialog()} {open
-} {
+Function {make_ModemSeries_dialog()} {} {
   Fl_Window {} {
-    label {AGWN series} open
-    xywh {784 430 270 120} type Double visible
+    label {Modem Series} open
+    xywh {723 69 379 141} type Double visible
   } {
-    Fl_Spinner cntr_Low_dB {
-      label {Lower s/n}
-      tooltip {Lower limit in dB} xywh {84 51 60 25} minimum -40 maximum 40 value 0
+    Fl_Button btn_cancel_ModemSeries {
+      label Disable
+      callback {disable_ModemSeries();}
+      tooltip {Disable Multiple Modem Use} xywh {10 101 85 24}
     }
-    Fl_Spinner cntr_High_dB {
-      label {Upper s/n}
-      tooltip {Upper limit in dB} xywh {85 20 60 25} minimum -20 maximum 40 value 20
+    Fl_Choice start_modem_choice {
+      label {Start with Modem}
+      callback {start_modem();} open
+      tooltip {Select the First modem.} xywh {125 6 240 24} down_box BORDER_BOX
+      code1 {if(!modem_list_populated) populate_modem_list();}
+    } {}
+    Fl_Button btn_enable_ModemSeries {
+      label Enable
+      callback {enable_ModemSeries();}
+      tooltip {Enable Multiple Modem Use.} xywh {100 101 85 24}
     }
-    Fl_Spinner cntr_Step_dB {
-      label {Step size}
-      tooltip {Step size in dB} xywh {84 81 60 25} maximum 20
+    Fl_Button btn_close_ModemSeries {
+      label Close
+      callback {close_ModemSeries();}
+      tooltip {Close Dialog Box} xywh {280 101 85 24}
     }
-    Fl_Return_Button btn_AWGNseries_process {
-      label Process
-      callback {AWGNseries_process();}
-      tooltip {Use checked simulation models} xywh {170 58 84 22}
+    Fl_Choice end_modem_choice {
+      label {End with Modem}
+      callback {end_modem();} open
+      tooltip {Select the Last modem.} xywh {125 36 240 24} down_box BORDER_BOX
+      code1 {if(!modem_list_populated) populate_modem_list();}
+    } {}
+    Fl_Button btn_query_ModemSeries {
+      label Query
+      callback {query_ModemSeries();}
+      tooltip {Test fldigi presents, load modem list on detection.} xywh {190 101 85 24}
     }
-    Fl_Button btn_cancel_AWGNseries {
-      label Cancel
-      callback {cancel_AWGNseries();}
-      tooltip {Cancel - no change in model} xywh {177 18 70 22}
+    Fl_Output Output_Modem_Series_Status {
+      label {Modem Series}
+      tooltip {Modem Series Enable/Disable Status} xywh {125 66 115 24}
+      code0 {o->value("Disabled");}
+    }
+    Fl_Check_Button ck_high_speed {
+      label {High Speed PB}
+      callback {high_speed();}
+      tooltip {High Speed Playback} xywh {250 70 115 15} down_box DOWN_BOX
     }
   }
 } 
 
-Function {make_folder_dialog()} {open
-} {
+Function {make_AWGNseries_dialog()} {} {
+  Fl_Window {} {
+    label {AGWN series} open
+    xywh {449 66 268 114} type Double visible
+  } {
+    Fl_Spinner cntr_Low_dB {
+      label {Lower s/n}
+      callback {cb_awgn_series_lower();}
+      tooltip {Lower limit in dB} xywh {84 45 60 25} minimum -40 maximum 40 value 0
+      code0 {o->value(progStatus.awgn_series_lower);}
+    }
+    Fl_Spinner cntr_High_dB {
+      label {Upper s/n}
+      callback {cb_awgn_series_upper();}
+      tooltip {Upper limit in dB} xywh {85 15 60 25} minimum -20 maximum 40 value 20
+      code0 {o->value(progStatus.awgn_series_upper);}
+    }
+    Fl_Spinner cntr_Step_dB {
+      label {Step size}
+      callback {cb_awgn_series_step();}
+      tooltip {Step size in dB} xywh {84 75 60 25} maximum 20
+      code0 {o->value(progStatus.awgn_series_step);}
+    }
+    Fl_Return_Button btn_AWGNseries_process {
+      label Process
+      callback {AWGNseries_process();}
+      tooltip {Use checked simulation models} xywh {170 61 84 24}
+    }
+    Fl_Button btn_cancel_AWGNseries {
+      label Cancel
+      callback {cancel_AWGNseries();}
+      tooltip {Cancel - no change in model} xywh {170 31 84 24}
+    }
+  }
+} 
+
+Function {make_folder_dialog()} {} {
   Fl_Window {} {
     label {Output file location} open
     xywh {1088 430 350 105} type Double hide
@@ -395,7 +469,7 @@ Function {make_folder_dialog()} {open
       xywh {4 22 342 35} align 5
     }
     Fl_Button {} {
-      label {Select 
+      label {Select
 Folder}
       callback {output_folder_select();}
       xywh {94 62 70 36}
@@ -408,6 +482,58 @@ Folder}
       label Close
       callback {close_output_dialog();}
       xywh {10 67 70 26}
+    }
+  }
+} 
+
+Function {make_xmlrpc_ip_address()} {} {
+  Fl_Window {} {
+    label {XMLRPC IP Address} open
+    xywh {28 650 369 96} type Double visible
+  } {
+    Fl_Button btn_save_ip_address {
+      label Save
+      callback {save_xmlrpc_ip_address_dialog();}
+      xywh {200 46 70 24}
+    }
+    Fl_Button {} {
+      label Close
+      callback {close_xmlrpc_ip_address_dialog();}
+      xywh {280 46 70 24}
+    }
+    Fl_Input inp_xmlrpc_ip_address {
+      label {IP Address}
+      callback {ip_address_text_field();}
+      xywh {95 14 255 24}
+      code0 {o->value(progStatus.xmlrpc_ip_address.c_str());}
+    }
+    Fl_Input inp_xmlrpc_ip_port_no {
+      label {Port Number}
+      callback {ip_port_no_text_field();}
+      xywh {95 44 95 24}
+      code0 {char __buf[128];}
+      code1 {snprintf(__buf, sizeof(__buf)-1, "%d", (int) progStatus.xmlrpc_ip_port_no);}
+      code2 {o->value(__buf);}
+    }
+  }
+} 
+
+Function {make_tx_duration_dialog()} {open
+} {
+  Fl_Window {} {
+    label {TX Duration (Seconds)} open selected
+    xywh {1131 392 205 88} type Double visible
+  } {
+    Fl_Spinner spnr_TX_Duration {
+      label {TX Duration}
+      callback {progStatus.tx_duration = o->value();}
+      tooltip {Lower limit in dB} xywh {115 10 60 25} maximum 480 value 4
+      code0 {o->value(progStatus.tx_duration);}
+    }
+    Fl_Button btn_close_tx_duration {
+      label Close
+      callback {close_tx_duration_dialog();}
+      tooltip {Cancel - no change in model} xywh {65 46 84 24}
     }
   }
 } 

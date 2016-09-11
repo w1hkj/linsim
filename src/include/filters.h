@@ -69,9 +69,9 @@ private:
 		return 0.54 - 0.46 * cos(2 * M_PI * x);
 	}
 	inline double blackman(double x) {
-		return (0.42 - 
-				 0.50 * cos(2.0 * M_PI * x) + 
-				 0.08 * cos(4.0 * M_PI * x));
+		return (0.42 -
+				0.50 * cos(2.0 * M_PI * x) +
+				0.08 * cos(4.0 * M_PI * x));
 	}
 	inline double hanning(double x) {
 		return 0.5 - 0.5 * cos(2 * M_PI * x);

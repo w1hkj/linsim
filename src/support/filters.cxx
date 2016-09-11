@@ -65,7 +65,7 @@ void C_FIR_filter::init(int len, int dec, double *itaps, double *qtaps) {
 		ibuffer[i] = qbuffer[i] = 0.0;
 
 	if (itaps) {
-            ifilter = new double[len];
+		ifilter = new double[len];
 		for (int i = 0; i < len; i++) ifilter[i] = itaps[i];
 	}
 	if (qtaps) {
@@ -96,13 +96,13 @@ double * C_FIR_filter::bp_FIR(int len, int hilbert, double f1, double f2)
 
 		if (!hilbert) {
 			x = (2 * f2 * sinc(2 * f2 * t) -
-			     2 * f1 * sinc(2 * f1 * t)) * hanning(h);// blackman(h);//hamming(h);
+				 2 * f1 * sinc(2 * f1 * t)) * hanning(h);// blackman(h);//hamming(h);
 		} else {
 			x = (2 * f2 * cosc(2 * f2 * t) -
-			     2 * f1 * cosc(2 * f1 * t)) * hanning(h);//blackman(h);//hamming(h);
-// The actual filter code assumes the impulse response
-// is in time reversed order. This will be anti-
-// symmetric so the minus sign handles that for us.
+				 2 * f1 * cosc(2 * f1 * t)) * hanning(h);//blackman(h);//hamming(h);
+														 // The actual filter code assumes the impulse response
+														 // is in time reversed order. This will be anti-
+														 // symmetric so the minus sign handles that for us.
 			x = -x;
 		}
 
@@ -165,7 +165,7 @@ int C_FIR_filter::run (const cmplx &in, cmplx &out) {
 	counter++;
 	if (counter == decimateratio)
 		out = cmplx (	mac(&ibuffer[pointer - length], ifilter, length),
-						mac(&qbuffer[pointer - length], qfilter, length) );
+					 mac(&qbuffer[pointer - length], qfilter, length) );
 	pointer++;
 	if (pointer == FIRBufferLen) {
 		/// memmove is necessary if length >= FIRBufferLen/2 , theoretically possible.
@@ -436,8 +436,8 @@ void sfft::run(const cmplx& input, cmplx * __restrict__ result, int stride )
 
 	// It is more efficient to have vrot and bins very close to each other.
 	for(	vrot_bins_pair
-			* __restrict__ itr = vrot_bins + first,
-			* __restrict__ end = vrot_bins + last ;
+		* __restrict__ itr = vrot_bins + first,
+		* __restrict__ end = vrot_bins + last ;
 		itr != end ;
 		++itr, result += stride ) {
 		*result = itr->bins = itr->bins * itr->vrot + z * itr->vrot;
@@ -510,49 +510,49 @@ void goertzel::reset(int n, double freq, double sr)
 
 bool goertzel::run(double sample)
 {
-    Q0 = sample + k3*Q1 - Q2;
-    Q2 = Q1;
-    Q1 = Q0;
-    if (--count == 0) {
-	count = N;
-	return true;
-    }
-    return false;
+	Q0 = sample + k3*Q1 - Q2;
+	Q2 = Q1;
+	Q1 = Q0;
+	if (--count == 0) {
+		count = N;
+		return true;
+	}
+	return false;
 }
 
 double goertzel::real()
 {
-    return ((0.5*k3*Q1 - Q2)/N);
+	return ((0.5*k3*Q1 - Q2)/N);
 }
 
 double goertzel::imag()
 {
-    return ((k2*Q1)/N);
+	return ((k2*Q1)/N);
 }
 
 double goertzel::mag()
 {
-    return (Q2*Q2 + Q1*Q1 - k3*Q2*Q1);
+	return (Q2*Q2 + Q1*Q1 - k3*Q2*Q1);
 }
 
 /*
-#include <stdio.h>
-#include <stdlib.h>
-
-int main (int argc, char *argv[])
-{
-	int len = 50;
-	double flow = 100;
-	double fhigh = 3700;
-	double sr = 8000;
-	C_FIR_filter filter;
-
-	filter.init_hilbert(len, 1, flow/sr, fhigh/sr);
-	double *ifilter = filter.Ivals();
-	double *qfilter = filter.Qvals();
-
-	for (int i = 0; i < len; i++)
-		printf("%d, %f, %f\n", i, ifilter[i], qfilter[i]);
-}
-
-*/
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
+ int main (int argc, char *argv[])
+ {
+ int len = 50;
+ double flow = 100;
+ double fhigh = 3700;
+ double sr = 8000;
+ C_FIR_filter filter;
+ 
+ filter.init_hilbert(len, 1, flow/sr, fhigh/sr);
+ double *ifilter = filter.Ivals();
+ double *qfilter = filter.Qvals();
+ 
+ for (int i = 0; i < len; i++)
+ printf("%d, %f, %f\n", i, ifilter[i], qfilter[i]);
+ }
+ 
+ */
