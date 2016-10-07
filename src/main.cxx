@@ -657,13 +657,13 @@ void show_ofname(void *)
 
 static void show_what_simulation(void *d)
 {
-	int n = reinterpret_cast<int>(d);
+	int n = reinterpret_cast<long long>(d);
 	txt_simulation->value(simulations.dbrecs[n].title.c_str());
 }
 
 static void show_p0(void *d)
 {
-	int n = reinterpret_cast<int>(d);
+	int n = reinterpret_cast<long long>(d);
 	bool b = simulations.dbrecs[n].p0 == "1";
 	p0_on->value(b);
 	inp_spread0->value(simulations.dbrecs[n].spread_0.c_str());
@@ -672,7 +672,7 @@ static void show_p0(void *d)
 
 static void show_p1(void *d)
 {
-	int n = reinterpret_cast<int>(d);
+	int n = reinterpret_cast<long long>(d);
 	bool b = simulations.dbrecs[n].p1 == "1";
 	p1_on->value(b);
 	inp_delay1->value(simulations.dbrecs[n].delay_1.c_str());
@@ -682,7 +682,7 @@ static void show_p1(void *d)
 
 static void show_p2(void *d)
 {
-	int n = reinterpret_cast<int>(d);
+	int n = reinterpret_cast<long long>(d);
 	bool b = simulations.dbrecs[n].p2 == "1";
 	p2_on->value(b);
 	inp_delay2->value(simulations.dbrecs[n].delay_2.c_str());
@@ -692,7 +692,7 @@ static void show_p2(void *d)
 
 static void show_simulations(void *d)
 {
-	int n = reinterpret_cast<int>(d);
+	int n = reinterpret_cast<long long>(d);
 	bool b = simulations.dbrecs[n].awgn == "1";
 	inp_AWGN_on->value(b);
 	inp_AWGN_rms->value(simulations.dbrecs[n].sn.c_str());
