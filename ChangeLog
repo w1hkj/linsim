@@ -1,6 +1,21 @@
-2014-11-29  David Freese  <iam_w1hkj@w1hkj.com>
 
-	90dc094: Threads
+
+=Version 2.0.2=
+
+2016-10-07  David Freese  <iam_w1hkj@w1hkj.com>
+
+	f0bb4b7: OSX Xcode 8
+	f1c4978: Noise generator
+	19e2d31: MXE update
+
+2015-06-11  Kamal Mostafa  <kamal@whence.com>
+
+	2eac849: BUILD_{DATE,USER,HOST}
+
+2015-03-23  David Freese  <iam_w1hkj@w1hkj.com>
+
+	683428c: FSF address
+	9b44597: Threads
 
 
 =Version 2.0.1=
