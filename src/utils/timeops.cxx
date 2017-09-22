@@ -179,7 +179,7 @@ bool operator==(const struct timeval &t0, const struct timeval &t1)
 
 
 #ifndef HAVE_GMTIME_R
-#include <pthread.h>
+#include "threads.h"
 
 static pthread_mutex_t gmtime_r_mutex = PTHREAD_MUTEX_INITIALIZER;
 
