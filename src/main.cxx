@@ -487,7 +487,7 @@ void generate_output()
 
 	set_output_sr();
 
-	sim_test.noise_rms = (sim_test.signal_rms / sim_test.snr) / 5;
+	sim_test.noise_rms = (sim_test.signal_rms / sim_test.snr) / 4.8;
 
 //std::cout << "peak  " << sim_test.signal_peak << "\n";
 //std::cout << "rms   " << sim_test.signal_rms << "\n";

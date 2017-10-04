@@ -95,15 +95,9 @@ void SIM::measure_rms( double *samples, int BUF_SIZE)
 		smpl = samples[i];
 		peak = fabs(smpl);
 		signal_rms += (smpl * smpl);
-//		ssum += ( smpl * smpl );
 		if (peak > signal_peak) signal_peak = peak;
 	}
-//	signal_rms += ssum;
 	num_buffs += BUF_SIZE;
-//	signal_rms = (signal_rms * num_buffs + sqrtf(ssum));
-//	num_buffs += BUF_SIZE;
-//	signal_rms /= num_buffs;
-
 }
 
 // ---------------------------------------------------------------------
