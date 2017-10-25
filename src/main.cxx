@@ -365,6 +365,9 @@ int parse_args(int argc, char **argv, int& idx)
 	return 0;
 }
 
+bool wait_for_rms = false;
+bool wait_for_fname = false;
+
 void update_sim_vals()
 {
 	sim_vals.p0.active = p0_on->value();
@@ -488,12 +491,12 @@ void generate_output()
 	set_output_sr();
 
 	sim_test.noise_rms = (sim_test.signal_rms / sim_test.snr) / 4.8;
-
-//std::cout << "peak  " << sim_test.signal_peak << "\n";
-//std::cout << "rms   " << sim_test.signal_rms << "\n";
-//std::cout << "snr   " << sim_test.snr << "\n";
-//std::cout << "noise " << sim_test.noise_rms << "\n";
-
+/*
+std::cout << "peak  " << sim_test.signal_peak << "\n";
+std::cout << "rms   " << sim_test.signal_rms << "\n";
+std::cout << "snr   " << sim_test.snr << "\n";
+std::cout << "noise " << sim_test.noise_rms << "\n";
+*/
 	sim_test.sound_in.open(fname_in, SoundFile::READ);
 
 	memset(buffer, 0, MAX_BUF_SIZE * sizeof(double));
@@ -913,12 +916,14 @@ static std::string str_szdb = "";
 static void update_AWGN_rms(void *)
 {
 	inp_AWGN_rms->value(str_szdb.c_str());
+	wait_for_rms = false;
 }
 
 static std::string str_simname = "";
 static void update_simname(void *)
 {
 	txt_simulation->value(str_simname.c_str());
+	wait_for_fname = false;
 }
 
 void process_AWGN_series()
@@ -945,6 +950,7 @@ void process_AWGN_series()
 	if (p != string::npos) basename.erase(p);
 	basename.append(".");
 
+	wait_for_rms = true;
 	Fl::awake(clear_AWGN);
 
 	analyze_input();
@@ -965,7 +971,16 @@ void process_AWGN_series()
 		fname_out.assign(basename);
 		fname_out.append(simname).append(".wav");
 		ofname = fname_out;
+
+		wait_for_rms = true;
 		Fl::awake(show_ofname);
+
+//std::cout << "s/n in db " << db << std::endl;
+//std::cout << "Filename: " << ofname << std::endl;
+	while (wait_for_rms || wait_for_fname) {
+		MilliSleep(50);
+		Fl::awake();
+	}
 
 		generate_output();
 	}
