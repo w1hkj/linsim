@@ -1,8 +1,17 @@
 
 
-=Version 2.0.2=
+=Version 2.0.3=
 
-2016-10-07  David Freese  <iam_w1hkj@w1hkj.com>
+2017-10-24  David Freese  <w1hkj@bellsouth.net>
+
+	b2e997c: S/N Series
+	eded897: s/n eval
+	982a78a: win mingw
+	dc740f5: INSTALL
+	2c8072f: Arch linux code changes
+
+
+=Version 2.0.2=
 
 	f0bb4b7: OSX Xcode 8
 	f1c4978: Noise generator
