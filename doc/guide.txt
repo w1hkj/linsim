@@ -203,7 +203,7 @@ It's quite common to want a series of test files at varying signal to noise rati
 [[ref-credits]]
 == Credits ==
 
-Copyright (C) 2014 David Freese, +W1HKJ+.
+Copyright (C) 2014, 2015, 2016, 2017 David Freese, +W1HKJ+.
 
 Based on AE4JY, Moe Wheatley's PathSim.
 
