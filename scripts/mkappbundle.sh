@@ -107,7 +107,7 @@ name=$(echo "$PACKAGE_TARNAME" | upcase1)
 signature="$(echo $PACKAGE_TARNAME | sed 's/[aeiouAEIOU]//g; s/\(^....\).*/\1/')"
 binary="$PACKAGE_TARNAME"
 icon="$linsim_icon"
-version="${linsim_VERSION_MAJOR}.${linsim_VERSION_MINOR}"
+version="${linsim_VERSION_MAJOR}.${linsim_VERSION_MINOR}.${linsim_VERSION_PATCH}"
 appversion="$linsim_VERSION"
 
 bundle
