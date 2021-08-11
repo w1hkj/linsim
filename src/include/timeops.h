@@ -2,7 +2,7 @@
 // Copyright (C) 2014
 //              David Freese, W1HKJ
 //
-// This file is part of flmsg
+// This file is part of linsim
 //
 // fldigi is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include <sys/time.h>
 
 #ifdef __MINGW32__
+#  include "compat.h"
 #  include <pthread.h>
 #endif
 
@@ -72,6 +73,7 @@ int clock_gettime(clockid_t clock_id, struct timespec* tp);
 #	endif /* !HAVE_CLOCK_GETTIME */
 
 #endif /* __APPLE__ */
+
 
 struct timespec operator+(const struct timespec &t0, const double &t);
 struct timespec operator-(const struct timespec &t0, const struct timespec &t1);

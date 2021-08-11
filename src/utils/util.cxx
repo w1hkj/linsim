@@ -7,7 +7,7 @@
 // Copyright (C) 2014
 //              David Freese, W1HKJ
 //
-// This file is part of flmsg
+// This file is part of linsim
 //
 // flrig is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by

@@ -7,7 +7,7 @@
 // Copyright (C) 2014
 //              David Freese, W1HKJ
 //
-// This file is part of flmsg
+// This file is part of linsim
 //
 // flrig is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,12 +33,16 @@
 #if !HAVE_CLOCK_GETTIME
 #  ifdef __APPLE__
 #    include <mach/mach_time.h>
+#    define CLOCK_REALTIME 0
+#    define CLOCK_MONOTONIC 6
 #  endif
 #  if TIME_WITH_SYS_TIME
 #    include <sys/time.h>
 #  endif
 #  include <errno.h>
-int clock_gettime(clockid_t clock_id, struct timespec* tp)
+#  include "util.h"
+
+int clock_gettime(clock_id_t clock_id, struct timespec* tp)
 {
 	if (clock_id == CLOCK_REALTIME) {
 		struct timeval t;
@@ -54,7 +58,7 @@ int clock_gettime(clockid_t clock_id, struct timespec* tp)
 		tp->tv_nsec = (msec % 1000) * 1000000;
 #elif defined(__APPLE__)
 		static mach_timebase_info_data_t info = { 0, 0 };
-		if (info.denom == 0)
+		if (unlikely(info.denom == 0))
 			mach_timebase_info(&info);
 		uint64_t t = mach_absolute_time() * info.numer / info.denom;
 		tp->tv_sec = t / 1000000000;
