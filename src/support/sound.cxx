@@ -54,8 +54,6 @@
 #define SND_BUF_LEN	 65536
 #define SND_RW_LEN	(8 * SND_BUF_LEN)
 
-using namespace std;
-
 int inpfile_samplerate = 8000;
 int outfile_samplerate = 8000;
 int linsim_samplerate = 8000;
@@ -140,15 +138,15 @@ printf("WRITE\nframes : %d\nsamplerate : %d\nchannels : %d\nformat: %d\nsections
 			fprintf(stderr, "sound file update header command failed: %s", sf_strerror(snd_file));
 		tag_file(snd_file, "linsim output");
 
-		string wav_comment, wav_title;
+		std::string wav_comment, wav_title;
 		size_t pc;
 		wav_title.assign(fl_filename_name(fname_in.c_str()));
 		pc = wav_title.find(".wav");
-		if (pc != string::npos) wav_title.erase(pc);
+		if (pc != std::string::npos) wav_title.erase(pc);
 
 		wav_comment.assign(txt_simulation->value());
 		pc = wav_comment.find(".wav");
-		if (pc != string::npos) wav_comment.erase(pc);
+		if (pc != std::string::npos) wav_comment.erase(pc);
 
 		sf_set_string (snd_file, SF_STR_SOFTWARE, PACKAGE_STRING);
 		sf_set_string (snd_file, SF_STR_ARTIST, "W1HKJ software");

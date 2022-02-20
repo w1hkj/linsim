@@ -39,23 +39,21 @@
 #include <iostream>
 #include <fstream>
 
-using namespace std;
-
 struct csvRecord {
-	string title;
-	string awgn;
-	string sn;
-	string p0;
-	string spread_0;
-	string offset_0;
-	string p1;
-	string delay_1;
-	string spread_1;
-	string offset_1;
-	string p2;
-	string delay_2;
-	string spread_2;
-	string offset_2;
+	std::string title;
+	std::string awgn;
+	std::string sn;
+	std::string p0;
+	std::string spread_0;
+	std::string offset_0;
+	std::string p1;
+	std::string delay_1;
+	std::string spread_1;
+	std::string offset_1;
+	std::string p2;
+	std::string delay_2;
+	std::string spread_2;
+	std::string offset_2;
 	csvRecord() {
 		title.clear();
 		awgn.clear();
@@ -72,9 +70,9 @@ struct csvRecord {
 		spread_2.clear();
 		offset_2.clear();
 	}
-	csvRecord(string atitle, string wgn, string asn, string ap0, string asp0, string aof0,
-			string ap1, string adel1, string asp1, string aof1,
-			string ap2, string adel2, string asp2, string aof2){
+	csvRecord(std::string atitle, std::string wgn, std::string asn, std::string ap0, std::string asp0, std::string aof0,
+			std::string ap1, std::string adel1, std::string asp1, std::string aof1,
+			std::string ap2, std::string adel2, std::string asp2, std::string aof2){
 		title = atitle;
 		awgn = wgn;
 		sn = asn;
@@ -95,23 +93,23 @@ struct csvRecord {
 class csvdb {
 private:
 	static const char *csvFields;
-	string dbfilename;
+	std::string dbfilename;
 	csvRecord record;
 	int cur_recnbr;
 public:
-	vector<csvRecord> dbrecs;
+	std::vector<csvRecord> dbrecs;
 
 	csvdb() {
 		dbfilename.clear();
 		cur_recnbr = 0;
 	}
-	csvdb(string fname) {
+	csvdb(std::string fname) {
 		dbfilename.assign(fname);
 		cur_recnbr = 0;
 	}
 	~csvdb() {}
-	void filename(string fname) { dbfilename.assign(fname); }
-	string filename() { return dbfilename; }
+	void filename(std::string fname) { dbfilename.assign(fname); }
+	std::string filename() { return dbfilename; }
 	int save();
 	int load();
 	void load_defaults();
@@ -122,13 +120,13 @@ public:
 	void sort();
 	int recnbr() { return cur_recnbr; }
 	int erase(size_t n);
-	string delimit(string s);
-	string trim(string s);
-	void field(string &s, string &fld);
-	bool split(string s, csvRecord &rec);
-	void join(csvRecord &rec, string &s);
+	std::string delimit(std::string s);
+	std::string trim(std::string s);
+	void field(std::string &s, std::string &fld);
+	bool split(std::string s, csvRecord &rec);
+	void join(csvRecord &rec, std::string &s);
 	void clearrec(csvRecord &rec);
-	bool mapheader(string s);
+	bool mapheader(std::string s);
 	void printrec(int);
 };
 

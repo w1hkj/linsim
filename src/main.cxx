@@ -77,20 +77,18 @@
 #	include <dirent.h>
 #endif
 
-using namespace std;
-
 #include <FL/x.H>
 #include <FL/Fl_Pixmap.H>
 #include <FL/Fl_Image.H>
 #include <FL/Fl_File_Chooser.H>
 
-void fatal_error(string sz_error);
+void fatal_error(std::string sz_error);
 void process_run_simulation();
 void process_batch_items();
 void process_AWGN_series();
 
-string BaseDir = "";
-string HomeDir = "";
+std::string BaseDir = "";
+std::string HomeDir = "";
 
 #define KNAME "linsim"
 #if !defined(__WIN32__) && !defined(__APPLE__)
@@ -120,8 +118,8 @@ void make_pixmap(Pixmap *xpm, const char **data)
 csvdb simulations;
 SIM sim_test;
 _vals sim_vals;
-string fname_in;
-string fname_out;
+std::string fname_in;
+std::string fname_out;
 
 Fl_Double_Window *simulator_selector = (Fl_Double_Window *)0;
 Fl_Double_Window *batch_process_selector = (Fl_Double_Window *)0;
@@ -276,9 +274,9 @@ void exit_main(Fl_Widget *w)
 
 // Show an error dialog and print to cerr if available.
 // On win32 Fl::fatal displays its own error window.
-void fatal_error(string sz_error)
+void fatal_error(std::string sz_error)
 {
-	string s = "Fatal error!\n";
+	std::string s = "Fatal error!\n";
 	s.append(sz_error).append("\n").append(strerror(errno));
 
 // Win32 will display a MessageBox error message
@@ -320,7 +318,7 @@ int main(int argc, char **argv)
 #endif
 
 	if (mkdir(HomeDir.c_str(), 0777) == -1 && errno != EEXIST) {
-		string s = "Could not create linsim directory ";
+		std::string s = "Could not create linsim directory ";
 		s.append(HomeDir);
 		fatal_error(s);
 	}
@@ -339,7 +337,7 @@ int main(int argc, char **argv)
 	linsim_window->show(argc, argv);
 #endif
 
-	string csv_fname;
+	std::string csv_fname;
 	csv_fname.assign(HomeDir).append("linsim.simulations.csv");
 	simulations.filename(csv_fname);
 	txt_simulations_filename->value("linsim.simulations.csv");
@@ -432,9 +430,9 @@ size_t buffs_read;
 void analyze_input()
 {
 	if (fname_in.empty()) return;
-	string dir = fname_in;
+	std::string dir = fname_in;
 	size_t p = dir.find(fl_filename_name(dir.c_str()));
-	if (p != string::npos) dir.erase(p);
+	if (p != std::string::npos) dir.erase(p);
 
 	double buffer[MAX_BUF_SIZE];
 
@@ -823,13 +821,13 @@ void process_batch_items()
 {
 	printf("run batch\n");
 
-	string basename;
-	string simname;
+	std::string basename;
+	std::string simname;
 
 	if (btn_same_as_input_file->value())
 		basename = fname_in;
 	else {
-		string name = fl_filename_name(fname_in.c_str());
+		std::string name = fl_filename_name(fname_in.c_str());
 		basename = finp_output_wav_folder->value();
 		basename.append(name);
 	}
@@ -837,7 +835,7 @@ void process_batch_items()
 		return;
 
 	size_t p = basename.find(".wav");
-	if (p != string::npos) basename.erase(p);
+	if (p != std::string::npos) basename.erase(p);
 	basename.append(".");
 
 	analyze_input();
@@ -846,11 +844,11 @@ void process_batch_items()
 		if (tbl_batch_simulations->checked(n+1)) {
 			fname_out.assign(basename);
 			simname.assign(tbl_batch_simulations->text(n+1));
-			while ((p = simname.find("(")) != string::npos) simname.erase(p,1);
-			while ((p = simname.find(")")) != string::npos) simname.erase(p,1);
-			while ((p = simname.find("/")) != string::npos) simname[p] = '_';
-			while ((p = simname.find("-")) != string::npos) simname[p] = '_';
-			while ((p = simname.find(" ")) != string::npos) simname[p] = '_';
+			while ((p = simname.find("(")) != std::string::npos) simname.erase(p,1);
+			while ((p = simname.find(")")) != std::string::npos) simname.erase(p,1);
+			while ((p = simname.find("/")) != std::string::npos) simname[p] = '_';
+			while ((p = simname.find("-")) != std::string::npos) simname[p] = '_';
+			while ((p = simname.find(" ")) != std::string::npos) simname[p] = '_';
 
 			fname_out.append(simname).append(".wav");
 			ofname = fname_out;
@@ -935,11 +933,11 @@ void process_AWGN_series()
 	char simname[100];
 	char szdb[10];
 
-	string basename;
+	std::string basename;
 	if (btn_same_as_input_file->value())
 		basename = fname_in;
 	else {
-		string name = fl_filename_name(fname_in.c_str());
+		std::string name = fl_filename_name(fname_in.c_str());
 		basename = finp_output_wav_folder->value();
 		basename.append(name);
 	}
@@ -947,7 +945,7 @@ void process_AWGN_series()
 		return;
 
 	size_t p = basename.find(".wav");
-	if (p != string::npos) basename.erase(p);
+	if (p != std::string::npos) basename.erase(p);
 	basename.append(".");
 
 	wait_for_rms = true;
@@ -1013,9 +1011,9 @@ void abort_simulation()
 
 void output_folder_select()
 {
-	string dir = fname_in;
+	std::string dir = fname_in;
 	size_t p = dir.find(fl_filename_name(dir.c_str()));
-	if (p != string::npos) dir.erase(p);
+	if (p != std::string::npos) dir.erase(p);
 
 	char *szdir = fl_dir_chooser ( "Output wav file folder", dir.c_str(), 0 );
 
@@ -1033,9 +1031,9 @@ void close_output_dialog()
 void choose_batch_folder()
 {
 	if (!select_output_dialog) select_output_dialog = make_folder_dialog();
-	string dir = fname_in;
+	std::string dir = fname_in;
 	size_t p = dir.find(fl_filename_name(dir.c_str()));
-	if (p != string::npos) dir.erase(p);
+	if (p != std::string::npos) dir.erase(p);
 	finp_output_wav_folder->value(dir.c_str());
 	finp_output_wav_folder->redraw();
 	select_output_dialog->show();
@@ -1057,9 +1055,9 @@ Report problems to %s", PACKAGE_STRING, PACKAGE_BUGREPORT);
 
 void guideURL()
 {
-	string deffname = HomeDir;
+	std::string deffname = HomeDir;
 	deffname.append("linsim_guide.html");
-	ofstream f(deffname.c_str());
+	std::ofstream f(deffname.c_str());
 	if (!f)
 		return;
 	f << szGuide;
