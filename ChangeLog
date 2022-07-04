@@ -1,18 +1,21 @@
+2022-07-04  dave-w1hkj  <w1hkj@bellsouth.net>
 
+	8944260: Version 2.0.4
+	ef47e1b: namespace std
+	2a3828c: Lion build
 
-=Version 2.0.3=
+2021-02-07  David Freese  <w1hkj@bellsouth.net>
 
-2017-10-24  David Freese  <w1hkj@bellsouth.net>
-
+	7d5526b: macOS Info.plist
+	d7a80e7: builds
+	4063629: doc update
+	c2aed12: Version 2.0.3
 	b2e997c: S/N Series
 	eded897: s/n eval
 	982a78a: win mingw
 	dc740f5: INSTALL
 	2c8072f: Arch linux code changes
-
-
-=Version 2.0.2=
-
+	a206879: Version 2.0.2
 	f0bb4b7: OSX Xcode 8
 	f1c4978: Noise generator
 	19e2d31: MXE update
@@ -25,21 +28,12 @@
 
 	683428c: FSF address
 	9b44597: Threads
-
-
-=Version 2.0.1=
-
+	8e1b8e0: Version 2.0.1
 	9a50fe9: File store
-
-
-=Version 2.0.0=
-
+	fec8537: Version 2.0.0
 	f6dd1d6: DIST FILES
 	b0859b8: SampleRate
-
-
-=Version 1.0.1=
-
+	bc80dab: Version 1.0.1
 	aef0a6e: Quick guide
 	0d88b7a: Output directory
 	3e58c74: AWGN range-series
