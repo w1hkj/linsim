@@ -844,6 +844,8 @@ void process_batch_items()
 		if (tbl_batch_simulations->checked(n+1)) {
 			fname_out.assign(basename);
 			simname.assign(tbl_batch_simulations->text(n+1));
+			select_entry(n+1);
+
 			while ((p = simname.find("(")) != std::string::npos) simname.erase(p,1);
 			while ((p = simname.find(")")) != std::string::npos) simname.erase(p,1);
 			while ((p = simname.find("/")) != std::string::npos) simname[p] = '_';
