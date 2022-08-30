@@ -14,7 +14,7 @@ m4_define(linsim_MAJOR,  [2])
 m4_define(linsim_MINOR,  [0])
 m4_define(linsim_PATCH,  [.5])
 
-AC_INIT([linsim],[linsim_MAJOR.linsim_MINORlinsim_PATCH],[w1hkj AT w1hkj DOT com])
+AC_INIT([linsim],[linsim_MAJOR.linsim_MINOR[]linsim_PATCH],[w1hkj AT w1hkj DOT com])
 
 AC_SUBST([linsim_VERSION_MAJOR], [linsim_MAJOR])
 AC_SUBST([linsim_VERSION_MINOR], [linsim_MINOR])
